@@ -25,13 +25,13 @@ class MinifyTest extends PHPUnit_Framework_TestCase
         return $javascript;
     }
 
-    public function testDevlopment()
+    public function testDevelopment()
     {
         $pug = new Pug(array(
             'prettyprint'     => true,
             'assetDirectory'  => __DIR__,
             'outputDirectory' => sys_get_temp_dir(),
-            'environment'     => 'devlopment',
+            'environment'     => 'development',
         ));
         $minify = new Minify($pug);
         $pug->addKeyword('minify', $minify);
