@@ -60,6 +60,11 @@ class MinifyTest extends PHPUnit_Framework_TestCase
         unlink($file);
         $this->assertSame(static::fileGetAsset(__DIR__ . '/react-pug/test.js'), $javascript);
 
+        $file = sys_get_temp_dir() . '/js/test.js';
+        $javascript = static::fileGetAsset($file);
+        unlink($file);
+        $this->assertSame(static::fileGetAsset(__DIR__ . '/js/test.js'), $javascript);
+
         $file = sys_get_temp_dir() . '/less/test.css';
         $style = static::fileGetAsset($file);
         unlink($file);
@@ -69,6 +74,11 @@ class MinifyTest extends PHPUnit_Framework_TestCase
         $style = static::fileGetAsset($file);
         unlink($file);
         $this->assertSame(static::fileGetAsset(__DIR__ . '/stylus/test.css'), $style);
+
+        $file = sys_get_temp_dir() . '/css/test.css';
+        $style = static::fileGetAsset($file);
+        unlink($file);
+        $this->assertSame(static::fileGetAsset(__DIR__ . '/css/test.css'), $style);
     }
 
     public function testProductionWithMinify()
@@ -85,6 +95,21 @@ class MinifyTest extends PHPUnit_Framework_TestCase
         $expected = static::simpleHtml(file_get_contents(__DIR__ . '/prod-minify.html'));
 
         $this->assertSame($expected, $html);
+
+        $file = sys_get_temp_dir() . '/js/top.min.js';
+        $javascript = static::fileGetAsset($file);
+        unlink($file);
+        $this->assertSame(static::fileGetAsset(__DIR__ . '/js/top.min.js'), $javascript);
+
+        $file = sys_get_temp_dir() . '/js/bottom.min.js';
+        $javascript = static::fileGetAsset($file);
+        unlink($file);
+        $this->assertSame(static::fileGetAsset(__DIR__ . '/js/bottom.min.js'), $javascript);
+
+        $file = sys_get_temp_dir() . '/css/top.min.css';
+        $style = static::fileGetAsset($file);
+        unlink($file);
+        $this->assertSame(static::fileGetAsset(__DIR__ . '/css/top.min.css'), $style);
     }
 
     public function testProductionWithConcat()
@@ -93,7 +118,6 @@ class MinifyTest extends PHPUnit_Framework_TestCase
             'prettyprint'     => true,
             'assetDirectory'  => __DIR__,
             'outputDirectory' => sys_get_temp_dir(),
-            'environment'     => 'production',
         ));
         $minify = new Minify($pug);
         $pug->addKeyword('concat', $minify);
@@ -101,5 +125,20 @@ class MinifyTest extends PHPUnit_Framework_TestCase
         $expected = static::simpleHtml(file_get_contents(__DIR__ . '/prod-concat.html'));
 
         $this->assertSame($expected, $html);
+
+        $file = sys_get_temp_dir() . '/js/top.js';
+        $javascript = static::fileGetAsset($file);
+        unlink($file);
+        $this->assertSame(static::fileGetAsset(__DIR__ . '/js/top.js'), $javascript);
+
+        $file = sys_get_temp_dir() . '/js/bottom.js';
+        $javascript = static::fileGetAsset($file);
+        unlink($file);
+        $this->assertSame(static::fileGetAsset(__DIR__ . '/js/bottom.js'), $javascript);
+
+        $file = sys_get_temp_dir() . '/css/top.css';
+        $style = static::fileGetAsset($file);
+        unlink($file);
+        $this->assertSame(static::fileGetAsset(__DIR__ . '/css/top.css'), $style);
     }
 }

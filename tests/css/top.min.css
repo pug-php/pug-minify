@@ -1,10 +1,1 @@
-@base: #f938ab;.box-shadow(@style,@c) when (iscolor(@c)){-webkit-box-shadow: @style @c;box-shadow: @style @c;}.box-shadow(@style,@alpha:50%) when (isnumber(@alpha)){.box-shadow(@style, rgba(0, 0, 0, @alpha));}.box{color:saturate(@base,5%);border-color:lighten(@base,30%)}
-
-lightRed = #f67
-
-body
-  color lightRed
-  font 14px Arial, sans-serif
-  a
-    text-decoration: none
-__ESCAPED_SOURCE_END_CLEAN_CSS__
+*{font-family:sans-serif}.box{color:#fe33ac;border-color:#fdcdea}.box div{-webkit-box-shadow:0 0 5px rgba(0,0,0,.3);box-shadow:0 0 5px rgba(0,0,0,.3)}body{color:#f67;font:14px Arial,sans-serif}body a{text-decoration:none}

@@ -1,40 +1,67 @@
-# Assignment:
-number   = 42
-opposite = true
+var cubes, list, math, num, number, opposite, race, square,
+  slice = [].slice;
 
-# Conditions:
-number = -42 if opposite
+number = 42;
 
-# Functions:
-square = (x) -> x * x
+opposite = true;
 
-# Arrays:
-list = [1, 2, 3, 4, 5]
+if (opposite) {
+  number = -42;
+}
 
-# Objects:
-math =
-  root:   Math.sqrt
-  square: square
-  cube:   (x) -> x * square x
+square = function(x) {
+  return x * x;
+};
 
-# Splats:
-race = (winner, runners...) ->
-  print winner, runners
+list = [1, 2, 3, 4, 5];
 
-# Existence:
-alert "I knew it!" if elvis?
+math = {
+  root: Math.sqrt,
+  square: square,
+  cube: function(x) {
+    return x * square(x);
+  }
+};
 
-# Array comprehensions:
-cubes = (math.cube num for num in list)
+race = function() {
+  var runners, winner;
+  winner = arguments[0], runners = 2 <= arguments.length ? slice.call(arguments, 1) : [];
+  return print(winner, runners);
+};
+
+if (typeof elvis !== "undefined" && elvis !== null) {
+  alert("I knew it!");
+}
+
+cubes = (function() {
+  var i, len, results;
+  results = [];
+  for (i = 0, len = list.length; i < len; i++) {
+    num = list[i];
+    results.push(math.cube(num));
+  }
+  return results;
+})();
 
 /** @jsx dom */
 var dom = React.createElement;
 
-ReactDOM.render(::`
-    h1 Hello,
-      em world!
-      button.btn.btn-primary OK
-    `,
-    document.getElementById('main')
-);
+ReactDOM.render(dom(
+  "h1",
+  null,
+  "Hello,",
+  dom(
+    "em",
+    null,
+    "world!"
+  ),
+  "  ",
+  dom(
+    "button",
+    { className: "btn btn-primary" },
+    "OK"
+  )
+), document.getElementById('main'));
+
+//# sourceMappingURL=test.js.map
 
