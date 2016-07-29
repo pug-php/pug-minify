@@ -1,4 +1,4 @@
-# minify
+# Pug-Minify
 [![Latest Stable Version](https://poser.pugx.org/pug-php/pug-minify/v/stable.png)](https://packagist.org/packages/pug-php/pug-minify)
 [![Build Status](https://travis-ci.org/pug-php/pug-minify.svg?branch=master)](https://travis-ci.org/pug-php/pug-minify)
 [![StyleCI](https://styleci.io/repos/64454439/shield?style=flat)](https://styleci.io/repos/64454439)
