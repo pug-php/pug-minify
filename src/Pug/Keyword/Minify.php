@@ -4,7 +4,6 @@ namespace Pug\Keyword;
 
 use Jade\Jade;
 use Jade\Nodes\Node;
-use Jade\Nodes\Tag;
 use NodejsPhpFallback\CoffeeScript;
 use NodejsPhpFallback\Less;
 use NodejsPhpFallback\React;
@@ -63,11 +62,6 @@ class Minify
         }
 
         return $path;
-    }
-
-    protected function isRootPath($path)
-    {
-        return false === strpos(trim($path, DIRECTORY_SEPARATOR), DIRECTORY_SEPARATOR);
     }
 
     protected function parsePugInJs($code, $indent = '', $classAttribute = null)
@@ -219,7 +213,7 @@ class Minify
         $this->css = array();
     }
 
-    public function linkExtractor(Tag $node, $href, $rel)
+    public function linkExtractor($href, $rel)
     {
         if ($href && $rel === 'stylesheet') {
             $path = $this->parseStyle($href);
@@ -234,7 +228,7 @@ class Minify
         }
     }
 
-    public function scriptExtractor(Tag $node, $src)
+    public function scriptExtractor($src)
     {
         if ($src) {
             $path = $this->parseScript($src);

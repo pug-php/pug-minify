@@ -58,7 +58,7 @@ class BlockExtractor
         }
 
         list($extractor, $attributes) = $this->extractors[$node->name];
-        $arguments = array($node);
+        $arguments = array();
         foreach ($attributes as $attribute) {
             $arguments[] = $this->getNodeValue($node, $attribute);
         }
