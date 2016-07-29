@@ -3,12 +3,14 @@
 namespace Pug\Keyword;
 
 use Jade\Jade;
+use Jade\Nodes\Node;
 use Jade\Nodes\Tag;
 use NodejsPhpFallback\CoffeeScript;
 use NodejsPhpFallback\Less;
 use NodejsPhpFallback\React;
 use NodejsPhpFallback\Stylus;
 use NodejsPhpFallback\Uglify;
+use Pug\Keyword\Minify\BlockExtractor;
 use Pug\Pug;
 
 class Minify
@@ -205,56 +207,7 @@ class Minify
         }
     }
 
-    protected function getNodeValue($node, $key)
-    {
-        $attribute = $node->getAttribute($key);
-
-        return is_array($attribute)
-            ? stripslashes(substr($attribute['value'], 1, -1))
-            : null;
-    }
-
-    protected function setNodeValue(Tag $node, $key, $value)
-    {
-        foreach ($node->attributes as &$attribute) {
-            if ($attribute['name'] === $key) {
-                $attribute['value'] = var_export($value, true);
-            }
-        }
-    }
-
-    protected function scrollBlock($block)
-    {
-        if (isset($block->nodes) && is_array($block->nodes)) {
-            foreach ($block->nodes as $key => $node) {
-                if (isset($node->block) && is_object($node->block)) {
-                    $this->scrollBlock($node->block);
-                }
-                if (!isset($node->name) || !($node instanceof Tag)) {
-                    continue;
-                }
-                $path = true;
-                if ($node->name === 'link' && ($path = $this->getNodeValue($node, 'href')) && $this->getNodeValue($node, 'rel') === 'stylesheet') {
-                    $path = $this->parseStyle($path);
-                    if ($path) {
-                        $this->setNodeValue($node, 'href', $path);
-                    }
-                }
-                if ($node->name === 'script' && ($path = $this->getNodeValue($node, 'src'))) {
-                    $path = $this->parseScript($path);
-                    if ($path) {
-                        $this->setNodeValue($node, 'src', $path);
-                        $this->setNodeValue($node, 'type', 'text/javascript');
-                    }
-                }
-                if (!$path) {
-                    unset($block->nodes[$key]);
-                }
-            }
-        }
-    }
-
-    public function __invoke($arguments, $block, $keyword)
+    protected function initializeRendering()
     {
         if (is_null($this->dev)) {
             $this->dev = substr($this->getOption('environment'), 0, 3) === 'dev';
@@ -264,8 +217,51 @@ class Minify
 
         $this->js = array();
         $this->css = array();
+    }
 
-        $this->scrollBlock($block);
+    public function linkExtractor(Tag $node, $href, $rel)
+    {
+        if ($href && $rel === 'stylesheet') {
+            $path = $this->parseStyle($href);
+            if ($path) {
+                if ($this->dev) {
+                    return array(
+                        'href' => $path,
+                    );
+                }
+                $this->css[] = $path;
+            }
+        }
+    }
+
+    public function scriptExtractor(Tag $node, $src)
+    {
+        if ($src) {
+            $path = $this->parseScript($src);
+            if ($path) {
+                if ($this->dev) {
+                    return array(
+                        'src'  => $path,
+                        'type' => 'text/javascript',
+                    );
+                }
+                $this->js[] = $path;
+            }
+        }
+    }
+
+    public function __invoke($arguments, $block, $keyword)
+    {
+        $this->initializeRendering();
+
+        if (!($block instanceof Node)) {
+            return '';
+        }
+
+        $extractor = new BlockExtractor($block);
+        $extractor->registerTagExtractor('link', array($this, 'linkExtractor'), 'href', 'rel');
+        $extractor->registerTagExtractor('script', array($this, 'scriptExtractor'), 'src');
+        $extractor->extract();
 
         $html = '';
 

@@ -10,7 +10,7 @@ engines:
   phpmd:
     enabled: true
     checks:
-      CleanCode/BooleanArgumentFlag:
+      Naming/ShortVariable:
         enabled: false
 ratings:
   paths:
