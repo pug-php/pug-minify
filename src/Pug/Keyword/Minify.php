@@ -217,13 +217,10 @@ class Minify
     {
         if ($href && $rel === 'stylesheet') {
             $path = $this->parseStyle($href);
-            if ($path) {
-                if ($this->dev) {
-                    return array(
-                        'href' => $path,
-                    );
-                }
-                $this->css[] = $path;
+            if ($this->dev && $path) {
+                return array(
+                    'href' => $path,
+                );
             }
         }
     }
@@ -232,14 +229,11 @@ class Minify
     {
         if ($src) {
             $path = $this->parseScript($src);
-            if ($path) {
-                if ($this->dev) {
-                    return array(
-                        'src'  => $path,
-                        'type' => 'text/javascript',
-                    );
-                }
-                $this->js[] = $path;
+            if ($this->dev && $path) {
+                return array(
+                    'src'  => $path,
+                    'type' => 'text/javascript',
+                );
             }
         }
     }
