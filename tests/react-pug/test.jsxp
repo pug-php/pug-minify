@@ -1,0 +1,10 @@
+/** @jsx dom */
+var dom = React.createElement;
+
+ReactDOM.render(::`
+    h1 Hello,
+      em world!
+      button.btn.btn-primary OK
+    `,
+    document.getElementById('main')
+);

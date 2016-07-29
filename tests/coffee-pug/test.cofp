@@ -1,0 +1,8 @@
+do ($ = jQuery) ->
+  $('h1').html ::"""
+      strong Foo
+      em bar
+      ul
+        li !
+        li ?
+    """
