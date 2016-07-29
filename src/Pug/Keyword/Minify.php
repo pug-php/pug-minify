@@ -223,7 +223,8 @@ class Minify
         }
     }
 
-    protected function scrollBlock($block) {
+    protected function scrollBlock($block)
+    {
         if (isset($block->nodes) && is_array($block->nodes)) {
             foreach ($block->nodes as $key => $node) {
                 if (isset($node->block) && is_object($node->block)) {
@@ -269,7 +270,7 @@ class Minify
         $html = '';
 
         if (count($this->js) || count($this->css)) {
-            $compilation = in_array(strtolower(str_replace('-', '', $keyword)) , array('concat', 'concatto'))
+            $compilation = in_array(strtolower(str_replace('-', '', $keyword)), array('concat', 'concatto'))
                 ? 'concat'
                 : 'uglify';
 

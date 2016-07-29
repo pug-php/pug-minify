@@ -1,7 +1,7 @@
 <?php
 
-use Pug\Pug;
 use Pug\Keyword\Minify;
+use Pug\Pug;
 
 class MinifyTest extends PHPUnit_Framework_TestCase
 {
