@@ -1,0 +1,29 @@
+{
+    "name": "pug-php/pug-minify",
+    "description": "One keyword to minify them all (the assets: JS, CSS, Stylus, minify, Coffee, React) in your pug-php template.",
+    "type": "library",
+    "authors": [
+        {
+            "name": "Kyle",
+            "email": "kylekatarnls@gmail.com"
+        }
+    ],
+    "require": {
+        "pug-php/pug": "^2.0",
+        "nodejs-php-fallback/less": "^1.0",
+        "nodejs-php-fallback/stylus": "^1.0",
+        "nodejs-php-fallback/coffeescript": "^1.0",
+        "nodejs-php-fallback/react": "^1.0",
+        "nodejs-php-fallback/uglify": "^1.0.1"
+    },
+    "require-dev": {
+        "composer/composer": "^1.2",
+        "phpunit/phpunit": ">=4.0",
+        "codeclimate/php-test-reporter": "dev-master"
+    },
+    "autoload": {
+        "psr-0": {
+            "Pug\\": "src/"
+        }
+    }
+}
