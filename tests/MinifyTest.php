@@ -141,4 +141,34 @@ class MinifyTest extends PHPUnit_Framework_TestCase
         unlink($file);
         $this->assertSame(static::fileGetAsset(__DIR__ . '/css/top.css'), $style);
     }
+
+    public function testMultipleAssetDirectories()
+    {
+        $pug = new Pug(array(
+            'prettyprint'     => true,
+            'assetDirectory'  => array(dirname(__DIR__), __DIR__, __DIR__ . '/js'),
+            'outputDirectory' => sys_get_temp_dir(),
+        ));
+        $minify = new Minify($pug);
+        $pug->addKeyword('concat', $minify);
+        $html = static::simpleHtml($pug->render(__DIR__ . '/test-concat.pug'));
+        $expected = static::simpleHtml(file_get_contents(__DIR__ . '/prod-concat.html'));
+
+        $this->assertSame($expected, $html);
+
+        $file = sys_get_temp_dir() . '/js/top.js';
+        $javascript = static::fileGetAsset($file);
+        unlink($file);
+        $this->assertSame(static::fileGetAsset(__DIR__ . '/js/top.js'), $javascript);
+
+        $file = sys_get_temp_dir() . '/js/bottom.js';
+        $javascript = static::fileGetAsset($file);
+        unlink($file);
+        $this->assertSame(static::fileGetAsset(__DIR__ . '/js/bottom.js'), $javascript);
+
+        $file = sys_get_temp_dir() . '/css/top.css';
+        $style = static::fileGetAsset($file);
+        unlink($file);
+        $this->assertSame(static::fileGetAsset(__DIR__ . '/css/top.css'), $style);
+    }
 }
