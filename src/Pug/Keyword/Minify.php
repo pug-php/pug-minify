@@ -20,7 +20,7 @@ class Minify
     protected $dev;
 
     /**
-     * @var string
+     * @var array
      */
     protected $assetDirectory;
 
@@ -51,7 +51,21 @@ class Minify
 
     protected function path()
     {
-        return implode(DIRECTORY_SEPARATOR, array_filter(func_get_args()));
+        $parts = array_filter(func_get_args());
+        if (isset($parts[0]) && is_array($parts[0])) {
+            $bases = $parts[0];
+            $copy = $parts;
+            $i = 0;
+            foreach ($bases as $base) {
+                $copy[0] = $base;
+                if (file_exists(implode(DIRECTORY_SEPARATOR, $copy))) {
+                    $parts[0] = $base;
+                    break;
+                }
+            }
+        }
+
+        return implode(DIRECTORY_SEPARATOR, $parts);
     }
 
     protected function prepareDirectory($path)
@@ -206,8 +220,8 @@ class Minify
         if (is_null($this->dev)) {
             $this->dev = substr($this->getOption('environment'), 0, 3) === 'dev';
         }
-        $this->assetDirectory = $this->assetDirectory ?: $this->getOption('assetDirectory', '');
-        $this->outputDirectory = $this->outputDirectory ?: $this->getOption('outputDirectory', $this->assetDirectory);
+        $this->assetDirectory = (array) $this->assetDirectory ?: $this->getOption('assetDirectory', '');
+        $this->outputDirectory = $this->outputDirectory ?: $this->getOption('outputDirectory', $this->assetDirectory[0]);
 
         $this->js = array();
         $this->css = array();
