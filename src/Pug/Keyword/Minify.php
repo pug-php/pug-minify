@@ -56,6 +56,7 @@ class Minify
             $bases = $parts[0];
             $copy = $parts;
             $i = 0;
+            $parts[0] = $copy[0];
             foreach ($bases as $base) {
                 $copy[0] = $base;
                 if (file_exists(implode(DIRECTORY_SEPARATOR, $copy))) {
