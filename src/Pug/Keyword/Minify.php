@@ -95,8 +95,8 @@ class Minify
 
         $pug = new Pug(array(
             'classAttribute' => $classAttribute,
-            'singleQuote'    => false,
-            'prettyprint'    => $this->dev,
+            'singleQuote'    => $this->pug->getOption('singleQuote'),
+            'prettyprint'    => $this->pug->getOption('prettyprint'),
         ));
 
         return $pug->render($code);
@@ -178,7 +178,7 @@ class Minify
     {
         $paths = array();
         foreach ($this->$language as $path) {
-            $paths[] = $this->path($this->assetDirectory, $path);
+            $paths[] = $this->path($this->outputDirectory, $path);
         }
 
         return $paths;
