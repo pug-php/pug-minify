@@ -114,80 +114,70 @@ class Minify
 
     protected function writeWith($parser, $path)
     {
-        $path = $this->prepareDirectory($this->path($this->outputDirectory, $path));
         file_put_contents($path, '');
         $parser->write($path);
     }
 
-    protected function getExtensionPathAndSource($path, $newExtension)
+    protected function getPathInfo($path, $newExtension)
     {
         $source = $this->path($this->assetDirectory, $path);
         $extension = pathinfo($path, PATHINFO_EXTENSION);
         $path = substr($path, 0, -strlen($extension)) . $newExtension;
+        $destination = $this->prepareDirectory($this->path($this->outputDirectory, $path));
 
-        return array($extension, $path, $source);
+        return array($extension, $path, $source, $destination);
     }
 
     protected function parseScript($path)
     {
-        list($extension, $path, $source) = $this->getExtensionPathAndSource($path, 'js');
+        list($extension, $path, $source, $destination) = $this->getPathInfo($path, 'js');
         switch ($extension) {
             case 'jsxp':
                 $contents = preg_replace_callback('/(?<!\s)(\s*)::`(([^`]+|(?<!`)`(?!`))*?)`(?!`)/', array($this, 'parsePugInJsx'), file_get_contents($source));
-                $this->writeWith(new React($contents), $path);
+                $this->writeWith(new React($contents), $destination);
                 break;
             case 'jsx':
-                $this->writeWith(new React($source), $path);
+                $this->writeWith(new React($source), $destination);
                 break;
             case 'cofp':
                 $contents = preg_replace_callback('/(?<!\s)(\s*)::"""([\s\S]*?)"""/', array($this, 'parsePugInCoffee'), file_get_contents($source));
-                $this->writeWith(new Coffeescript($contents), $path);
+                $this->writeWith(new Coffeescript($contents), $destination);
                 break;
             case 'coffee':
-                $this->writeWith(new Coffeescript($source), $path);
+                $this->writeWith(new Coffeescript($source), $destination);
                 break;
             default:
-                copy($source, $this->prepareDirectory($this->path($this->outputDirectory, $path)));
+                copy($source, $destination);
         }
         if ($this->dev) {
             return $path . '?' . time();
         }
-        $this->js[] = $path;
+        $this->js[] = $destination;
     }
 
     protected function parseStyle($path)
     {
-        list($extension, $path, $source) = $this->getExtensionPathAndSource($path, 'css');
+        list($extension, $path, $source, $destination) = $this->getPathInfo($path, 'css');
         switch ($extension) {
             case 'styl':
-                $this->writeWith(new Stylus($source), $path);
+                $this->writeWith(new Stylus($source), $destination);
                 break;
             case 'less':
-                $this->writeWith(new Less($source), $path);
+                $this->writeWith(new Less($source), $destination);
                 break;
             default:
-                copy($source, $this->prepareDirectory($this->path($this->outputDirectory, $path)));
+                copy($source, $destination);
         }
         if ($this->dev) {
             return $path . '?' . time();
         }
-        $this->css[] = $path;
-    }
-
-    protected function getPaths($language)
-    {
-        $paths = array();
-        foreach ($this->$language as $path) {
-            $paths[] = $this->path($this->outputDirectory, $path);
-        }
-
-        return $paths;
+        $this->css[] = $destination;
     }
 
     protected function uglify($language, $path)
     {
         $outputFile = $language . '/' . $path . '.min.' . $language;
-        $uglify = new Uglify($this->getPaths($language));
+        $uglify = new Uglify($this->$language);
         $path = $this->path($this->outputDirectory, $outputFile);
         $uglify->write($this->prepareDirectory($path));
 
@@ -198,7 +188,7 @@ class Minify
     {
         $outputFile = $language . '/' . $path . '.' . $language;
         $output = '';
-        foreach ($this->getPaths($language) as $path) {
+        foreach ($this->$language as $path) {
             $output .= file_get_contents($path) . "\n";
         }
         $path = $this->path($this->outputDirectory, $outputFile);
