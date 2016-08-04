@@ -5,6 +5,31 @@ use Pug\Pug;
 
 class MinifyTest extends PHPUnit_Framework_TestCase
 {
+    protected function getTempDir()
+    {
+        return sys_get_temp_dir() . '/minify-test';
+    }
+
+    protected function cleanTempDir()
+    {
+        $this->removeDirectory($this->getTempDir());
+    }
+
+    protected function removeDirectory($directory)
+    {
+        if (is_file($directory)) {
+            return unlink($directory);
+        }
+        if (!is_dir($directory)) {
+            return;
+        }
+        foreach (scandir($directory) as $file) {
+            if ($file !== '.' && $file !== '..') {
+                $this->removeDirectory($directory . DIRECTORY_SEPARATOR . $file);
+            }
+        }
+    }
+
     protected function simpleHtml($html)
     {
         $html = trim(str_replace("\r", '', $html));
@@ -21,16 +46,20 @@ class MinifyTest extends PHPUnit_Framework_TestCase
         $javascript = file_get_contents($file);
         $javascript = trim(str_replace("\r", '', $javascript));
         $javascript = preg_replace('/^([ \t]*)/m', '', $javascript);
+        $javascript = preg_replace('/\n{2,}/', "\n", $javascript);
 
         return $javascript;
     }
 
     public function testDevelopment()
     {
+        $this->cleanTempDir();
+        $outputDirectory = $this->getTempDir();
+
         $pug = new Pug(array(
             'prettyprint'     => true,
             'assetDirectory'  => __DIR__,
-            'outputDirectory' => sys_get_temp_dir(),
+            'outputDirectory' => $outputDirectory,
             'environment'     => 'development',
         ));
         $minify = new Minify($pug);
@@ -40,53 +69,58 @@ class MinifyTest extends PHPUnit_Framework_TestCase
 
         $this->assertSame($expected, $html);
 
-        $file = sys_get_temp_dir() . '/coffee/test.js';
+        $file = $outputDirectory . '/coffee/test.js';
         $javascript = static::fileGetAsset($file);
         unlink($file);
         $this->assertSame(static::fileGetAsset(__DIR__ . '/coffee/test.js'), $javascript);
 
-        $file = sys_get_temp_dir() . '/coffee-pug/test.js';
+        $file = $outputDirectory . '/coffee-pug/test.js';
         $javascript = static::fileGetAsset($file);
         unlink($file);
         $this->assertSame(static::fileGetAsset(__DIR__ . '/coffee-pug/test.js'), $javascript);
 
-        $file = sys_get_temp_dir() . '/react/test.js';
+        $file = $outputDirectory . '/react/test.js';
         $javascript = static::fileGetAsset($file);
         unlink($file);
         $this->assertSame(static::fileGetAsset(__DIR__ . '/react/test.js'), $javascript);
 
-        $file = sys_get_temp_dir() . '/react-pug/test.js';
+        $file = $outputDirectory . '/react-pug/test.js';
         $javascript = static::fileGetAsset($file);
         unlink($file);
         $this->assertSame(static::fileGetAsset(__DIR__ . '/react-pug/test.js'), $javascript);
 
-        $file = sys_get_temp_dir() . '/js/test.js';
+        $file = $outputDirectory . '/js/test.js';
         $javascript = static::fileGetAsset($file);
         unlink($file);
         $this->assertSame(static::fileGetAsset(__DIR__ . '/js/test.js'), $javascript);
 
-        $file = sys_get_temp_dir() . '/less/test.css';
+        $file = $outputDirectory . '/less/test.css';
         $style = static::fileGetAsset($file);
         unlink($file);
         $this->assertSame(static::fileGetAsset(__DIR__ . '/less/test.css'), $style);
 
-        $file = sys_get_temp_dir() . '/stylus/test.css';
+        $file = $outputDirectory . '/stylus/test.css';
         $style = static::fileGetAsset($file);
         unlink($file);
         $this->assertSame(static::fileGetAsset(__DIR__ . '/stylus/test.css'), $style);
 
-        $file = sys_get_temp_dir() . '/css/test.css';
+        $file = $outputDirectory . '/css/test.css';
         $style = static::fileGetAsset($file);
         unlink($file);
         $this->assertSame(static::fileGetAsset(__DIR__ . '/css/test.css'), $style);
+
+        $this->cleanTempDir();
     }
 
     public function testProductionWithMinify()
     {
+        $this->cleanTempDir();
+        $outputDirectory = $this->getTempDir();
+
         $pug = new Pug(array(
             'prettyprint'     => true,
             'assetDirectory'  => __DIR__,
-            'outputDirectory' => sys_get_temp_dir(),
+            'outputDirectory' => $outputDirectory,
             'environment'     => 'production',
         ));
         $minify = new Minify($pug);
@@ -96,28 +130,33 @@ class MinifyTest extends PHPUnit_Framework_TestCase
 
         $this->assertSame($expected, $html);
 
-        $file = sys_get_temp_dir() . '/js/top.min.js';
+        $file = $outputDirectory . '/js/top.min.js';
         $javascript = static::fileGetAsset($file);
         unlink($file);
         $this->assertSame(static::fileGetAsset(__DIR__ . '/js/top.min.js'), $javascript);
 
-        $file = sys_get_temp_dir() . '/js/bottom.min.js';
+        $file = $outputDirectory . '/js/bottom.min.js';
         $javascript = static::fileGetAsset($file);
         unlink($file);
         $this->assertSame(static::fileGetAsset(__DIR__ . '/js/bottom.min.js'), $javascript);
 
-        $file = sys_get_temp_dir() . '/css/top.min.css';
+        $file = $outputDirectory . '/css/top.min.css';
         $style = static::fileGetAsset($file);
         unlink($file);
         $this->assertSame(static::fileGetAsset(__DIR__ . '/css/top.min.css'), $style);
+
+        $this->cleanTempDir();
     }
 
     public function testProductionWithConcat()
     {
+        $this->cleanTempDir();
+        $outputDirectory = $this->getTempDir();
+
         $pug = new Pug(array(
             'prettyprint'     => true,
             'assetDirectory'  => __DIR__,
-            'outputDirectory' => sys_get_temp_dir(),
+            'outputDirectory' => $outputDirectory,
         ));
         $minify = new Minify($pug);
         $pug->addKeyword('concat', $minify);
@@ -126,28 +165,33 @@ class MinifyTest extends PHPUnit_Framework_TestCase
 
         $this->assertSame($expected, $html);
 
-        $file = sys_get_temp_dir() . '/js/top.js';
+        $file = $outputDirectory . '/js/top.js';
         $javascript = static::fileGetAsset($file);
         unlink($file);
         $this->assertSame(static::fileGetAsset(__DIR__ . '/js/top.js'), $javascript);
 
-        $file = sys_get_temp_dir() . '/js/bottom.js';
+        $file = $outputDirectory . '/js/bottom.js';
         $javascript = static::fileGetAsset($file);
         unlink($file);
         $this->assertSame(static::fileGetAsset(__DIR__ . '/js/bottom.js'), $javascript);
 
-        $file = sys_get_temp_dir() . '/css/top.css';
+        $file = $outputDirectory . '/css/top.css';
         $style = static::fileGetAsset($file);
         unlink($file);
         $this->assertSame(static::fileGetAsset(__DIR__ . '/css/top.css'), $style);
+
+        $this->cleanTempDir();
     }
 
     public function testMultipleAssetDirectories()
     {
+        $this->cleanTempDir();
+        $outputDirectory = $this->getTempDir();
+
         $pug = new Pug(array(
             'prettyprint'     => true,
             'assetDirectory'  => array(dirname(__DIR__), __DIR__, __DIR__ . '/js'),
-            'outputDirectory' => sys_get_temp_dir(),
+            'outputDirectory' => $outputDirectory,
         ));
         $minify = new Minify($pug);
         $pug->addKeyword('concat', $minify);
@@ -156,19 +200,21 @@ class MinifyTest extends PHPUnit_Framework_TestCase
 
         $this->assertSame($expected, $html);
 
-        $file = sys_get_temp_dir() . '/js/top.js';
+        $file = $outputDirectory . '/js/top.js';
         $javascript = static::fileGetAsset($file);
         unlink($file);
         $this->assertSame(static::fileGetAsset(__DIR__ . '/js/top.js'), $javascript);
 
-        $file = sys_get_temp_dir() . '/js/bottom.js';
+        $file = $outputDirectory . '/js/bottom.js';
         $javascript = static::fileGetAsset($file);
         unlink($file);
         $this->assertSame(static::fileGetAsset(__DIR__ . '/js/bottom.js'), $javascript);
 
-        $file = sys_get_temp_dir() . '/css/top.css';
+        $file = $outputDirectory . '/css/top.css';
         $style = static::fileGetAsset($file);
         unlink($file);
         $this->assertSame(static::fileGetAsset(__DIR__ . '/css/top.css'), $style);
+
+        $this->cleanTempDir();
     }
 }
