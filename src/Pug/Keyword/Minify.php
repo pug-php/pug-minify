@@ -55,7 +55,6 @@ class Minify
         if (isset($parts[0]) && is_array($parts[0])) {
             $bases = $parts[0];
             $copy = $parts;
-            $i = 0;
             $parts[0] = $bases[0];
             foreach ($bases as $base) {
                 $copy[0] = $base;
