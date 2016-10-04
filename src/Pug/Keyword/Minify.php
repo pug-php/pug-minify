@@ -94,8 +94,8 @@ class Minify
 
         $pug = new Pug(array(
             'classAttribute' => $classAttribute,
-            'singleQuote'    => $this->pug->getOption('singleQuote'),
-            'prettyprint'    => $this->pug->getOption('prettyprint'),
+            'singleQuote'    => $this->getOption('singleQuote'),
+            'prettyprint'    => $this->getOption('prettyprint'),
         ));
 
         return $pug->render($code);
@@ -127,26 +127,33 @@ class Minify
         return array($extension, $path, $source, $destination);
     }
 
+    protected function needUpate($source, $destination)
+    {
+        return !$this->dev || !file_exists($destination) || filemtime($source) >= filemtime($destination);
+    }
+
     protected function parseScript($path)
     {
         list($extension, $path, $source, $destination) = $this->getPathInfo($path, 'js');
-        switch ($extension) {
-            case 'jsxp':
-                $contents = preg_replace_callback('/(?<!\s)(\s*)::`(([^`]+|(?<!`)`(?!`))*?)`(?!`)/', array($this, 'parsePugInJsx'), file_get_contents($source));
-                $this->writeWith(new React($contents), $destination);
-                break;
-            case 'jsx':
-                $this->writeWith(new React($source), $destination);
-                break;
-            case 'cofp':
-                $contents = preg_replace_callback('/(?<!\s)(\s*)::"""([\s\S]*?)"""/', array($this, 'parsePugInCoffee'), file_get_contents($source));
-                $this->writeWith(new Coffeescript($contents), $destination);
-                break;
-            case 'coffee':
-                $this->writeWith(new Coffeescript($source), $destination);
-                break;
-            default:
-                copy($source, $destination);
+        if ($this->needUpate($source, $destination)) {
+            switch ($extension) {
+                case 'jsxp':
+                    $contents = preg_replace_callback('/(?<!\s)(\s*)::`(([^`]+|(?<!`)`(?!`))*?)`(?!`)/', array($this, 'parsePugInJsx'), file_get_contents($source));
+                    $this->writeWith(new React($contents), $destination);
+                    break;
+                case 'jsx':
+                    $this->writeWith(new React($source), $destination);
+                    break;
+                case 'cofp':
+                    $contents = preg_replace_callback('/(?<!\s)(\s*)::"""([\s\S]*?)"""/', array($this, 'parsePugInCoffee'), file_get_contents($source));
+                    $this->writeWith(new Coffeescript($contents), $destination);
+                    break;
+                case 'coffee':
+                    $this->writeWith(new Coffeescript($source), $destination);
+                    break;
+                default:
+                    copy($source, $destination);
+            }
         }
         if ($this->dev) {
             return $path . '?' . time();
@@ -157,15 +164,17 @@ class Minify
     protected function parseStyle($path)
     {
         list($extension, $path, $source, $destination) = $this->getPathInfo($path, 'css');
-        switch ($extension) {
-            case 'styl':
-                $this->writeWith(new Stylus($source), $destination);
-                break;
-            case 'less':
-                $this->writeWith(new Less($source), $destination);
-                break;
-            default:
-                copy($source, $destination);
+        if ($this->needUpate($source, $destination)) {
+            switch ($extension) {
+                case 'styl':
+                    $this->writeWith(new Stylus($source), $destination);
+                    break;
+                case 'less':
+                    $this->writeWith(new Less($source), $destination);
+                    break;
+                default:
+                    copy($source, $destination);
+            }
         }
         if ($this->dev) {
             return $path . '?' . time();
