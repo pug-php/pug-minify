@@ -301,4 +301,32 @@ class MinifyTest extends PHPUnit_Framework_TestCase
         $minify->trigger('pre-minify', $params);
         $this->assertTrue($customCalled, 'Hooks should be callable from outside the rendring.');
     }
+
+    /**
+     * @group issues
+     */
+    public function testIssue4()
+    {
+        $this->cleanTempDir();
+        $outputDirectory = $this->getTempDir();
+
+        $pug = new Pug(array(
+            'prettyprint'     => true,
+            'assetDirectory'  => array(dirname(__DIR__), __DIR__, __DIR__ . '/js'),
+            'outputDirectory' => $outputDirectory,
+        ));
+        $minify = new Minify($pug);
+        $minify->on('post-minify', function ($params) {
+            $params->outputFile = '/' . $params->outputFile;
+
+            return $params;
+        });
+        $pug->addKeyword('minify', $minify);
+        $html = static::simpleHtml($pug->render(__DIR__ . '/test-minify.pug'));
+        $expected = static::simpleHtml(file_get_contents(__DIR__ . '/issue4.html'));
+
+        $this->assertSame($expected, $html);
+
+        $this->cleanTempDir();
+    }
 }
