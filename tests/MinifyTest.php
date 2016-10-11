@@ -244,9 +244,13 @@ class MinifyTest extends PHPUnit_Framework_TestCase
             file_put_contents($params->destination, $contents);
         });
         $minifications = 0;
-        $minify->on('pre-minify', function ($params, $event, $ref) use (&$minifications) {
+        $customCalled = false;
+        $minify->on('pre-minify', function ($params, $event, $ref) use (&$minifications, &$customCalled) {
             if ($ref instanceof Minify) {
                 $minifications++;
+            }
+            if (isset($params->custom)) {
+                $customCalled = true;
             }
         });
         $minify->on('post-minify', function ($params) {
@@ -289,5 +293,12 @@ class MinifyTest extends PHPUnit_Framework_TestCase
         $this->assertSame(str_replace('Hello', 'Bye', static::fileGetAsset(__DIR__ . '/css/up.min.css')), $style);
 
         $this->cleanTempDir();
+
+        $params = array(
+            'custom' => 'foobar',
+        );
+        $this->assertFalse($customCalled, 'Hooks should be callable from outside the rendring.');
+        $minify->trigger('pre-minify', $params);
+        $this->assertTrue($customCalled, 'Hooks should be callable from outside the rendring.');
     }
 }
