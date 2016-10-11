@@ -40,6 +40,11 @@ class Minify
     protected $css;
 
     /**
+     * @var array
+     */
+    protected $events;
+
+    /**
      * @var Pug|Jade
      */
     protected $pug;
@@ -135,28 +140,43 @@ class Minify
     protected function parseScript($path)
     {
         list($extension, $path, $source, $destination) = $this->getPathInfo($path, 'js');
-        if ($this->needUpate($source, $destination)) {
-            switch ($extension) {
+        $params = (object) array(
+            'extension'   => $extension,
+            'type'        => 'script',
+            'path'        => $path,
+            'source'      => $source,
+            'destination' => $destination,
+        );
+        if ($this->needUpate($params->source, $params->destination)) {
+            switch ($params->extension) {
                 case 'jsxp':
-                    $contents = preg_replace_callback('/(?<!\s)(\s*)::`(([^`]+|(?<!`)`(?!`))*?)`(?!`)/', array($this, 'parsePugInJsx'), file_get_contents($source));
-                    $this->writeWith(new React($contents), $destination);
-                    break;
-                case 'jsx':
-                    $this->writeWith(new React($source), $destination);
+                    $params->contents = preg_replace_callback('/(?<!\s)(\s*)::`(([^`]+|(?<!`)`(?!`))*?)`(?!`)/', array($this, 'parsePugInJsx'), file_get_contents($params->source));
                     break;
                 case 'cofp':
-                    $contents = preg_replace_callback('/(?<!\s)(\s*)::"""([\s\S]*?)"""/', array($this, 'parsePugInCoffee'), file_get_contents($source));
-                    $this->writeWith(new Coffeescript($contents), $destination);
+                    $params->contents = preg_replace_callback('/(?<!\s)(\s*)::"""([\s\S]*?)"""/', array($this, 'parsePugInCoffee'), file_get_contents($params->source));
+                    break;
+            }
+            $this->trigger('pre-parse', $params);
+            switch ($params->extension) {
+                case 'jsxp':
+                    $this->writeWith(new React($params->contents), $destination);
+                    break;
+                case 'jsx':
+                    $this->writeWith(new React($params->source), $params->destination);
+                    break;
+                case 'cofp':
+                    $this->writeWith(new Coffeescript($params->contents), $params->destination);
                     break;
                 case 'coffee':
-                    $this->writeWith(new Coffeescript($source), $destination);
+                    $this->writeWith(new Coffeescript($params->source), $params->destination);
                     break;
                 default:
-                    copy($source, $destination);
+                    copy($params->source, $params->destination);
             }
+            $this->trigger('post-parse', $params);
         }
         if ($this->dev) {
-            return $path . '?' . time();
+            return $params->path . '?' . time();
         }
         $this->js[] = $destination;
     }
@@ -164,45 +184,73 @@ class Minify
     protected function parseStyle($path)
     {
         list($extension, $path, $source, $destination) = $this->getPathInfo($path, 'css');
-        if ($this->needUpate($source, $destination)) {
-            switch ($extension) {
+        $params = (object) array(
+            'extension'   => $extension,
+            'type'        => 'style',
+            'path'        => $path,
+            'source'      => $source,
+            'destination' => $destination,
+        );
+        if ($this->needUpate($params->source, $params->destination)) {
+            $this->trigger('pre-parse', $params);
+            switch ($params->extension) {
                 case 'styl':
-                    $this->writeWith(new Stylus($source), $destination);
+                    $this->writeWith(new Stylus($params->source), $params->destination);
                     break;
                 case 'less':
-                    $this->writeWith(new Less($source), $destination);
+                    $this->writeWith(new Less($params->source), $params->destination);
                     break;
                 default:
-                    copy($source, $destination);
+                    copy($params->source, $params->destination);
             }
+            $this->trigger('post-parse', $params);
         }
         if ($this->dev) {
-            return $path . '?' . time();
+            return $params->path . '?' . time();
         }
-        $this->css[] = $destination;
+        $this->css[] = $params->destination;
     }
 
-    protected function uglify($language, $path)
+    protected function uglify(&$params)
     {
+        $params->concat = true;
+        $params->minify = true;
+        $language = $params->language;
+        $path = $params->path;
         $outputFile = $language . '/' . $path . '.min.' . $language;
         $uglify = new Uglify($this->$language);
-        $path = $this->path($this->outputDirectory, $outputFile);
-        $uglify->write($this->prepareDirectory($path));
-
-        return $outputFile;
+        $uglify->setModeFromPath($outputFile);
+        $params->outputDirectory = $this->outputDirectory;
+        $params->outputFile = $outputFile;
+        $params->content = $uglify->getResult();
+        $this->trigger('pre-write', $params);
+        $path = $this->path($params->outputDirectory, $params->outputFile);
+        $path = $this->prepareDirectory($path);
+        $params->outputPath = $path;
+        file_put_contents($path, $params->content);
+        $this->trigger('post-write', $params);
     }
 
-    protected function concat($language, $path)
+    protected function concat(&$params)
     {
+        $params->concat = true;
+        $params->minify = false;
+        $language = $params->language;
+        $path = $params->path;
         $outputFile = $language . '/' . $path . '.' . $language;
         $output = '';
         foreach ($this->$language as $path) {
             $output .= file_get_contents($path) . "\n";
         }
-        $path = $this->path($this->outputDirectory, $outputFile);
-        file_put_contents($this->prepareDirectory($path), $output);
-
-        return $outputFile;
+        $params->outputDirectory = $this->outputDirectory;
+        $params->outputFile = $outputFile;
+        $params->content = $output;
+        $this->trigger('pre-write', $params);
+        $path = $this->path($params->outputDirectory, $params->outputFile);
+        $path = $this->prepareDirectory($path);
+        $params->outputPath = $path;
+        file_put_contents($path, $params->content);
+        $this->trigger('post-write', $params);
     }
 
     protected function getOption($option, $defaultValue = null)
@@ -224,6 +272,37 @@ class Minify
 
         $this->js = array();
         $this->css = array();
+    }
+
+    public function on($event, $action)
+    {
+        $event = strtolower(str_replace('-', '', $event));
+
+        if (!isset($this->events[$event])) {
+            $this->events[$event] = array();
+        }
+
+        $this->events[$event][] = $action;
+    }
+
+    public function trigger($event, &$params = null)
+    {
+        $event = strtolower(str_replace('-', '', $event));
+
+        if (!is_object($params)) {
+            $params = (object) (is_array($params) ? $params : array());
+        }
+
+        if (isset($this->events[$event])) {
+            foreach ($this->events[$event] as $action) {
+                if (is_callable($action)) {
+                    $newParams = call_user_func($action, $params, $event, $this);
+                    if (is_object($newParams)) {
+                        $params = $newParams;
+                    }
+                }
+            }
+        }
     }
 
     public function linkExtractor($href, $rel)
@@ -259,7 +338,15 @@ class Minify
             return '';
         }
 
-        $extractor = new BlockExtractor($block);
+        $renderParams = (object) array(
+            'minify'    => !in_array(strtolower(str_replace('-', '', $keyword)), array('concat', 'concatto')),
+            'keyword'   => $keyword,
+            'arguments' => $arguments,
+            'block'     => $block,
+        );
+        $this->trigger('pre-render', $renderParams);
+
+        $extractor = new BlockExtractor($renderParams->block);
         $extractor->registerTagExtractor('link', array($this, 'linkExtractor'), 'href', 'rel');
         $extractor->registerTagExtractor('script', array($this, 'scriptExtractor'), 'src');
         $extractor->extract();
@@ -267,19 +354,36 @@ class Minify
         $html = '';
 
         if (count($this->js) || count($this->css)) {
-            $compilation = in_array(strtolower(str_replace('-', '', $keyword)), array('concat', 'concatto'))
-                ? 'concat'
-                : 'uglify';
+            $compilation = $renderParams->minify ? 'uglify' : 'concat';
+            $event = $renderParams->minify ? 'minify' : 'concat';
 
             if (count($this->js)) {
-                $html .= '<script src="' . $this->$compilation('js', $arguments) . '"></script>';
+                $params = (object) array(
+                    'language' => 'js',
+                    'path'     => $renderParams->arguments,
+                );
+                $this->trigger('pre-' . $event, $params);
+                $this->$compilation($params);
+                $this->trigger('post-' . $event, $params);
+
+                $html .= '<script src="' . $params->outputFile . '"></script>';
             }
 
             if (count($this->css)) {
-                $html .= '<link rel="stylesheet" href="' . $this->$compilation('css', $arguments) . '">';
+                $params = (object) array(
+                    'language' => 'css',
+                    'path'     => $renderParams->arguments,
+                );
+                $this->trigger('pre-' . $event, $params);
+                $this->$compilation($params);
+                $this->trigger('post-' . $event, $params);
+
+                $html .= '<link rel="stylesheet" href="' . $params->outputFile . '">';
             }
         }
+        $renderParams->html = $html;
+        $this->trigger('post-render', $renderParams);
 
-        return $html;
+        return $renderParams->html;
     }
 }

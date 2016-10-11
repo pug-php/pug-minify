@@ -217,4 +217,88 @@ class MinifyTest extends PHPUnit_Framework_TestCase
 
         $this->cleanTempDir();
     }
+
+    /**
+     * @group hooks
+     */
+    public function testHooks()
+    {
+        $this->cleanTempDir();
+        $outputDirectory = $this->getTempDir();
+
+        $pug = new Pug(array(
+            'prettyprint'     => true,
+            'assetDirectory'  => __DIR__,
+            'outputDirectory' => $outputDirectory,
+            'environment'     => 'production',
+        ));
+        $minify = new Minify($pug);
+        $minify->on('pre-write', function ($params) {
+            $params->content = str_replace('42', '43', $params->content);
+
+            return $params;
+        });
+        $minify->on('post-parse', function ($params) {
+            $contents = file_get_contents($params->destination);
+            $contents = str_replace('Hello', 'Bye', $contents);
+            file_put_contents($params->destination, $contents);
+        });
+        $minifications = 0;
+        $customCalled = false;
+        $minify->on('pre-minify', function ($params, $event, $ref) use (&$minifications, &$customCalled) {
+            if ($ref instanceof Minify) {
+                $minifications++;
+            }
+            if (isset($params->custom)) {
+                $customCalled = true;
+            }
+        });
+        $minify->on('post-minify', function ($params) {
+            $params->outputPath .= '.copy';
+
+            return $params;
+        });
+        $minify->on('pre-render', function ($params) {
+            if ($params->arguments === 'top') {
+                $params->arguments = 'up';
+
+                return $params;
+            }
+        });
+        $minify->on('post-render', function ($params) {
+            $params->html .= "\n<!-- Bye -->";
+
+            return $params;
+        });
+        $pug->addKeyword('minify', $minify);
+        $html = static::simpleHtml($pug->render(__DIR__ . '/test-minify.pug'));
+        $expected = static::simpleHtml(file_get_contents(__DIR__ . '/hooks.html'));
+
+        $this->assertSame($expected, $html);
+        $this->assertSame(3, $minifications, 'CSS and JS on the top + JS on the bottom should trigger the pre-minify event 3 times.');
+
+        $file = $outputDirectory . '/js/up.min.js';
+        $javascript = static::fileGetAsset($file);
+        unlink($file);
+        $this->assertSame(static::fileGetAsset(__DIR__ . '/js/up.min.js.copy'), $javascript);
+
+        $file = $outputDirectory . '/js/bottom.min.js';
+        $javascript = static::fileGetAsset($file);
+        unlink($file);
+        $this->assertSame(str_replace('Hello', 'Bye', static::fileGetAsset(__DIR__ . '/js/bottom.min.js')), $javascript);
+
+        $file = $outputDirectory . '/css/up.min.css';
+        $style = static::fileGetAsset($file);
+        unlink($file);
+        $this->assertSame(str_replace('Hello', 'Bye', static::fileGetAsset(__DIR__ . '/css/up.min.css')), $style);
+
+        $this->cleanTempDir();
+
+        $params = array(
+            'custom' => 'foobar',
+        );
+        $this->assertFalse($customCalled, 'Hooks should be callable from outside the rendring.');
+        $minify->trigger('pre-minify', $params);
+        $this->assertTrue($customCalled, 'Hooks should be callable from outside the rendring.');
+    }
 }
