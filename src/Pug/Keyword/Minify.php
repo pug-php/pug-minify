@@ -141,10 +141,10 @@ class Minify
     {
         list($extension, $path, $source, $destination) = $this->getPathInfo($path, 'js');
         $params = (object) array(
-            'extension' => $extension,
-            'type' => 'script',
-            'path' => $path,
-            'source' => $source,
+            'extension'   => $extension,
+            'type'        => 'script',
+            'path'        => $path,
+            'source'      => $source,
             'destination' => $destination,
         );
         if ($this->needUpate($params->source, $params->destination)) {
@@ -185,10 +185,10 @@ class Minify
     {
         list($extension, $path, $source, $destination) = $this->getPathInfo($path, 'css');
         $params = (object) array(
-            'extension' => $extension,
-            'type' => 'style',
-            'path' => $path,
-            'source' => $source,
+            'extension'   => $extension,
+            'type'        => 'style',
+            'path'        => $path,
+            'source'      => $source,
             'destination' => $destination,
         );
         if ($this->needUpate($params->source, $params->destination)) {
@@ -339,10 +339,10 @@ class Minify
         }
 
         $renderParams = (object) array(
-            'minify' => !in_array(strtolower(str_replace('-', '', $keyword)), array('concat', 'concatto')),
-            'keyword' => $keyword,
+            'minify'    => !in_array(strtolower(str_replace('-', '', $keyword)), array('concat', 'concatto')),
+            'keyword'   => $keyword,
             'arguments' => $arguments,
-            'block' => $block,
+            'block'     => $block,
         );
         $this->trigger('pre-render', $renderParams);
 
@@ -360,7 +360,7 @@ class Minify
             if (count($this->js)) {
                 $params = (object) array(
                     'language' => 'js',
-                    'path' => $renderParams->arguments,
+                    'path'     => $renderParams->arguments,
                 );
                 $this->trigger('pre-' . $event, $params);
                 $this->$compilation($params);
@@ -372,7 +372,7 @@ class Minify
             if (count($this->css)) {
                 $params = (object) array(
                     'language' => 'css',
-                    'path' => $renderParams->arguments,
+                    'path'     => $renderParams->arguments,
                 );
                 $this->trigger('pre-' . $event, $params);
                 $this->$compilation($params);
