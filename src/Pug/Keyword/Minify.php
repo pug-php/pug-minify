@@ -353,34 +353,33 @@ class Minify
 
         $html = '';
 
-        if (count($this->js) || count($this->css)) {
-            $compilation = $renderParams->minify ? 'uglify' : 'concat';
-            $event = $renderParams->minify ? 'minify' : 'concat';
+        $compilation = $renderParams->minify ? 'uglify' : 'concat';
+        $event = $renderParams->minify ? 'minify' : 'concat';
 
-            if (count($this->js)) {
-                $params = (object) array(
-                    'language' => 'js',
-                    'path'     => $renderParams->arguments,
-                );
-                $this->trigger('pre-' . $event, $params);
-                $this->$compilation($params);
-                $this->trigger('post-' . $event, $params);
+        if (count($this->js)) {
+            $params = (object) array(
+                'language' => 'js',
+                'path'     => $renderParams->arguments,
+            );
+            $this->trigger('pre-' . $event, $params);
+            $this->$compilation($params);
+            $this->trigger('post-' . $event, $params);
 
-                $html .= '<script src="' . $params->outputFile . '"></script>';
-            }
-
-            if (count($this->css)) {
-                $params = (object) array(
-                    'language' => 'css',
-                    'path'     => $renderParams->arguments,
-                );
-                $this->trigger('pre-' . $event, $params);
-                $this->$compilation($params);
-                $this->trigger('post-' . $event, $params);
-
-                $html .= '<link rel="stylesheet" href="' . $params->outputFile . '">';
-            }
+            $html .= '<script src="' . $params->outputFile . '"></script>';
         }
+
+        if (count($this->css)) {
+            $params = (object) array(
+                'language' => 'css',
+                'path'     => $renderParams->arguments,
+            );
+            $this->trigger('pre-' . $event, $params);
+            $this->$compilation($params);
+            $this->trigger('post-' . $event, $params);
+
+            $html .= '<link rel="stylesheet" href="' . $params->outputFile . '">';
+        }
+
         $renderParams->html = $html;
         $this->trigger('post-render', $renderParams);
 
