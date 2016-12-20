@@ -330,27 +330,8 @@ class Minify
         }
     }
 
-    public function __invoke($arguments, $block, $keyword)
+    protected function renderHtml($renderParams)
     {
-        $this->initializeRendering();
-
-        if (!($block instanceof Node)) {
-            return '';
-        }
-
-        $renderParams = (object) array(
-            'minify'    => !in_array(strtolower(str_replace('-', '', $keyword)), array('concat', 'concatto')),
-            'keyword'   => $keyword,
-            'arguments' => $arguments,
-            'block'     => $block,
-        );
-        $this->trigger('pre-render', $renderParams);
-
-        $extractor = new BlockExtractor($renderParams->block);
-        $extractor->registerTagExtractor('link', array($this, 'linkExtractor'), 'href', 'rel');
-        $extractor->registerTagExtractor('script', array($this, 'scriptExtractor'), 'src');
-        $extractor->extract();
-
         $html = '';
 
         $compilation = $renderParams->minify ? 'uglify' : 'concat';
@@ -380,7 +361,31 @@ class Minify
             $html .= '<link rel="stylesheet" href="' . $params->outputFile . '">';
         }
 
-        $renderParams->html = $html;
+        return $html;
+    }
+
+    public function __invoke($arguments, $block, $keyword)
+    {
+        $this->initializeRendering();
+
+        if (!($block instanceof Node)) {
+            return '';
+        }
+
+        $renderParams = (object) array(
+            'minify'    => !in_array(strtolower(str_replace('-', '', $keyword)), array('concat', 'concatto')),
+            'keyword'   => $keyword,
+            'arguments' => $arguments,
+            'block'     => $block,
+        );
+        $this->trigger('pre-render', $renderParams);
+
+        $extractor = new BlockExtractor($renderParams->block);
+        $extractor->registerTagExtractor('link', array($this, 'linkExtractor'), 'href', 'rel');
+        $extractor->registerTagExtractor('script', array($this, 'scriptExtractor'), 'src');
+        $extractor->extract();
+
+        $renderParams->html = $this->renderHtml($renderParams);
         $this->trigger('post-render', $renderParams);
 
         return $renderParams->html;
