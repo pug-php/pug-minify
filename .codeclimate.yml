@@ -14,6 +14,11 @@ engines:
     checks:
       Naming/ShortVariable:
         enabled: false
+    exclude_fingerprints:
+    # Allow on() method because this is standard for events
+    - 9e5750b643db8e07cc742b18a62bcb43
+    # Need $event to get the next parameter $ref
+    - a7b0748112e24a59b9c29c38ba42b82e
 ratings:
   paths:
   - "**.php"

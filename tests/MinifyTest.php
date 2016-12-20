@@ -47,6 +47,8 @@ class MinifyTest extends PHPUnit_Framework_TestCase
         $javascript = trim(str_replace("\r", '', $javascript));
         $javascript = preg_replace('/^([ \t]*)/m', '', $javascript);
         $javascript = preg_replace('/\n{2,}/', "\n", $javascript);
+        $javascript = preg_replace('/"use strict";\n?/', '', $javascript);
+        $javascript = str_replace(";", ";\n", $javascript);
 
         return $javascript;
     }
