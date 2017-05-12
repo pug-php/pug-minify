@@ -88,3 +88,31 @@ $pug->setOption('cache', sys_get_temp_dir());
 And clear this cache directory when your assets change or when you deploy new ones.
 
 As the Pug cache feature allow to render the pug code only once, and so the assets, we do not incorporate a specific caching option in the *Minify* keyword.
+
+## Supported assets
+
+* `.coffee` files are compiled into JS from [CoffeeScript](http://coffeescript.org/)
+* `.cofp` handle CoffeeScript with pug inside tagged with ```html = ::"""h1#title Hello"""```
+* `.jsx` files are compiled into JS from [JSX](https://jsx.github.io/) also used in [React](http://buildwithreact.com/tutorial/jsx)
+* `.jsxp` handle JSX with pug inside tagged with ```html = ::`h1#title Hello`;```
+* `.styl` files are compiled into CSS from [Stylus](http://stylus-lang.com/)
+* `.less` files are compiled into CSS from [Less](http://lesscss.org/)
+
+Embedded pug code can be multiline:
+* `.cofp`
+```coffee
+html = ::"""
+      section
+        article
+          div:p.text Bla bla
+    """
+```
+* `.jsxp`
+```coffee
+let html = ::`
+      section
+        article
+          div:p.text Bla bla
+    `;
+```
+```
