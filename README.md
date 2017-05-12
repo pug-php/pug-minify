@@ -115,4 +115,3 @@ let html = ::`
           div:p.text Bla bla
     `;
 ```
-```
