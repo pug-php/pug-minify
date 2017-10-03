@@ -58,7 +58,7 @@ class MinifyTest extends PHPUnit_Framework_TestCase
         $method = method_exists($pug, 'renderFile')
             ? array($pug, 'renderFile')
             : array($pug, 'render');
-        
+
         return call_user_func($method, $file);
     }
 

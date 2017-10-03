@@ -51,7 +51,7 @@ class Minify
     {
         if (!($pug instanceof \Jade\Jade) && !($pug instanceof \Pug\Pug) && !($pug instanceof \Phug\Renderer)) {
             throw new \InvalidArgumentException(
-                'Allowed pug engine are Jade\\Jade, Pug\\Pug or Phug\\Renderer, '.get_class($pug).' given.'
+                'Allowed pug engine are Jade\\Jade, Pug\\Pug or Phug\\Renderer, ' . get_class($pug) . ' given.'
             );
         }
 
