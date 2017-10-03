@@ -53,6 +53,15 @@ class MinifyTest extends PHPUnit_Framework_TestCase
         return $javascript;
     }
 
+    protected function renderFile($pug, $file)
+    {
+        $method = method_exists($pug, 'renderFile')
+            ? array($pug, 'renderFile')
+            : array($pug, 'render');
+        
+        return call_user_func($method, $file);
+    }
+
     public function testDevelopment()
     {
         $this->cleanTempDir();
@@ -66,7 +75,7 @@ class MinifyTest extends PHPUnit_Framework_TestCase
         ));
         $minify = new Minify($pug);
         $pug->addKeyword('minify', $minify);
-        $html = static::simpleHtml($pug->render(__DIR__ . '/test-minify.pug'));
+        $html = static::simpleHtml($this->renderFile($pug, __DIR__ . '/test-minify.pug'));
         $expected = static::simpleHtml(file_get_contents(__DIR__ . '/dev.html'));
 
         $this->assertSame($expected, $html);
@@ -127,7 +136,7 @@ class MinifyTest extends PHPUnit_Framework_TestCase
         ));
         $minify = new Minify($pug);
         $pug->addKeyword('minify', $minify);
-        $html = static::simpleHtml($pug->render(__DIR__ . '/test-minify.pug'));
+        $html = static::simpleHtml($this->renderFile($pug, __DIR__ . '/test-minify.pug'));
         $expected = static::simpleHtml(file_get_contents(__DIR__ . '/prod-minify.html'));
 
         $this->assertSame($expected, $html);
@@ -162,7 +171,7 @@ class MinifyTest extends PHPUnit_Framework_TestCase
         ));
         $minify = new Minify($pug);
         $pug->addKeyword('concat', $minify);
-        $html = static::simpleHtml($pug->render(__DIR__ . '/test-concat.pug'));
+        $html = static::simpleHtml($this->renderFile($pug, __DIR__ . '/test-concat.pug'));
         $expected = static::simpleHtml(file_get_contents(__DIR__ . '/prod-concat.html'));
 
         $this->assertSame($expected, $html);
@@ -197,7 +206,7 @@ class MinifyTest extends PHPUnit_Framework_TestCase
         ));
         $minify = new Minify($pug);
         $pug->addKeyword('concat', $minify);
-        $html = static::simpleHtml($pug->render(__DIR__ . '/test-concat.pug'));
+        $html = static::simpleHtml($this->renderFile($pug, __DIR__ . '/test-concat.pug'));
         $expected = static::simpleHtml(file_get_contents(__DIR__ . '/prod-concat.html'));
 
         $this->assertSame($expected, $html);
@@ -273,7 +282,7 @@ class MinifyTest extends PHPUnit_Framework_TestCase
             return $params;
         });
         $pug->addKeyword('minify', $minify);
-        $html = static::simpleHtml($pug->render(__DIR__ . '/test-minify.pug'));
+        $html = static::simpleHtml($this->renderFile($pug, __DIR__ . '/test-minify.pug'));
         $expected = static::simpleHtml(file_get_contents(__DIR__ . '/hooks.html'));
 
         $this->assertSame($expected, $html);
@@ -324,7 +333,7 @@ class MinifyTest extends PHPUnit_Framework_TestCase
             return $params;
         });
         $pug->addKeyword('minify', $minify);
-        $html = static::simpleHtml($pug->render(__DIR__ . '/test-minify.pug'));
+        $html = static::simpleHtml($this->renderFile($pug, __DIR__ . '/test-minify.pug'));
         $expected = static::simpleHtml(file_get_contents(__DIR__ . '/issue4.html'));
 
         $this->assertSame($expected, $html);

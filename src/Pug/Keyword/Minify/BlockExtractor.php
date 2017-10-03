@@ -2,9 +2,6 @@
 
 namespace Pug\Keyword\Minify;
 
-use Jade\Nodes\Node;
-use Jade\Nodes\Tag;
-
 class BlockExtractor
 {
     /**
@@ -17,7 +14,7 @@ class BlockExtractor
      */
     protected $extractors;
 
-    public function __construct(Node $block)
+    public function __construct($block)
     {
         $this->block = $block;
         $this->extractors = array();
@@ -42,16 +39,22 @@ class BlockExtractor
             : null;
     }
 
-    protected function setNodeValue(Tag $node, $key, $value)
+    protected function setNodeValue($node, $key, $value)
     {
         foreach ($node->attributes as &$attribute) {
-            if ($attribute['name'] === $key) {
+            if (method_exists($attribute, 'getName')) {
+                if ($attribute->getName() === $key) {
+                    $attribute->setValue($value);
+                }
+                continue;
+            }
+            if ((is_array($attribute) || $attribute instanceof \ArrayAccess) && isset($attribute['name']) && $attribute['name'] === $key) {
                 $attribute['value'] = var_export($value, true);
             }
         }
     }
 
-    protected function processNode(Tag $node)
+    protected function processNode($node)
     {
         if (!isset($this->extractors[$node->name])) {
             return false;
@@ -76,17 +79,19 @@ class BlockExtractor
     protected function scrollBlock($block)
     {
         if (isset($block->nodes) && is_array($block->nodes)) {
+            $nodes = array();
             foreach ($block->nodes as $key => $node) {
                 if (isset($node->block) && is_object($node->block)) {
                     $this->scrollBlock($node->block);
                 }
-                if (!isset($node->name) || !($node instanceof Tag)) {
-                    continue;
-                }
-                if ($this->processNode($node)) {
-                    unset($block->nodes[$key]);
+                if (isset($node->name) && ($node instanceof \Jade\Nodes\Tag || $node instanceof \Phug\Formatter\Element\MarkupElement)) {
+                    if ($this->processNode($node)) {
+                        continue;
+                    }
+                    $nodes[$key] = $node;
                 }
             }
+            $block->nodes = $nodes;
         }
     }
 }

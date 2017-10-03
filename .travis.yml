@@ -1,26 +1,49 @@
 language: php
-
-php:
-  - '5.3'
-  - '5.4'
-  - '5.5'
-  - '5.6'
-  - '7.0'
-  - hhvm
-
+matrix:
+  include:
+    - php: 5.3
+      env: PUG_VERSION='2.7.1'
+      dist: precise
+      sudo: required
+    - php: 5.4
+      env: PUG_VERSION='2.7.1'
+    - php: 5.5
+      env: PUG_VERSION='2.7.1'
+    - php: 5.5
+      env: PUG_VERSION='^3.0@alpha'
+    - php: 5.6
+      env: PUG_VERSION='2.7.1'
+    - php: 5.6
+      env: PUG_VERSION='^3.0@alpha'
+    - php: 7.0
+      env: PUG_VERSION='2.7.1'
+    - php: 7.0
+      env: PUG_VERSION='^3.0@alpha'
+    - php: 7.1
+      env: PUG_VERSION='2.7.1'
+    - php: 7.1
+      env: PUG_VERSION='^3.0@alpha'
+    - php: 7.2
+      env: PUG_VERSION='2.7.1'
+    - php: 7.2
+      env: PUG_VERSION='^3.0@alpha'
+    - php: hhvm
+      env: PUG_VERSION='2.7.1'
+      dist: trusty
+      sudo: required
+    - php: hhvm
+      env: PUG_VERSION='^3.0@alpha'
+      dist: trusty
+      sudo: required
 before_script:
   - travis_retry composer self-update
-  - travis_retry composer install --no-interaction --prefer-source --dev
-
+  - if [ "$PUG_VERSION" != "" ]; then travis_retry composer require "pug-php/pug:${PUG_VERSION}" --no-update; fi;
+  - travis_retry composer update --no-interaction
 script:
   - vendor/bin/phpunit --verbose --coverage-text --coverage-clover=coverage.xml
-
 after_script:
   - vendor/bin/test-reporter --coverage-report coverage.xml
-
 after_success:
   - bash <(curl -s https://codecov.io/bash)
-
-addons:
     code_climate:
         repo_token: 2c63e7edf6ec61aa5410c33854aad31949ac87530d7afc9e456906d67f4abe83
