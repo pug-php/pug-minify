@@ -45,5 +45,6 @@ after_script:
   - vendor/bin/test-reporter --coverage-report coverage.xml
 after_success:
   - bash <(curl -s https://codecov.io/bash)
-    code_climate:
-        repo_token: 2c63e7edf6ec61aa5410c33854aad31949ac87530d7afc9e456906d67f4abe83
+addons:
+  code_climate:
+    repo_token: 2c63e7edf6ec61aa5410c33854aad31949ac87530d7afc9e456906d67f4abe83
