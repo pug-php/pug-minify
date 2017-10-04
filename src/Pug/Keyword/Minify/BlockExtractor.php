@@ -33,21 +33,28 @@ class BlockExtractor
     protected function getNodeValue($node, $key)
     {
         $attribute = $node->getAttribute($key);
+        if (is_array($attribute)) {
+            $attribute = strval($attribute['value']);
+        }
 
-        return is_array($attribute)
-            ? stripslashes(substr($attribute['value'], 1, -1))
+        return is_string($attribute)
+            ? stripslashes(substr($attribute, 1, -1))
             : null;
     }
 
     protected function setNodeValue($node, $key, $value)
     {
-        foreach ($node->attributes as &$attribute) {
-            if (method_exists($attribute, 'getName')) {
+        if (method_exists($node, 'getAttributes')) {
+            foreach ($node->getAttributes() as $attribute) {
                 if ($attribute->getName() === $key) {
                     $attribute->setValue($value);
                 }
-                continue;
             }
+
+            return;
+        }
+
+        foreach ($node->attributes as &$attribute) {
             if ((is_array($attribute) || $attribute instanceof \ArrayAccess) && isset($attribute['name']) && $attribute['name'] === $key) {
                 $attribute['value'] = var_export($value, true);
             }
@@ -56,11 +63,12 @@ class BlockExtractor
 
     protected function processNode($node)
     {
-        if (!isset($this->extractors[$node->name])) {
+        $name = method_exists($node, 'getName') ? $node->getName() : $node->name;
+        if (!isset($this->extractors[$name])) {
             return false;
         }
 
-        list($extractor, $attributes) = $this->extractors[$node->name];
+        list($extractor, $attributes) = $this->extractors[$name];
         $arguments = array();
         foreach ($attributes as $attribute) {
             $arguments[] = $this->getNodeValue($node, $attribute);
@@ -83,8 +91,13 @@ class BlockExtractor
             foreach ($block->nodes as $key => $node) {
                 if (isset($node->block) && is_object($node->block)) {
                     $this->scrollBlock($node->block);
+                } elseif (isset($node->nodes) && count($node->nodes)) {
+                    $this->scrollBlock($node);
                 }
                 if (isset($node->name) && ($node instanceof \Jade\Nodes\Tag || $node instanceof \Phug\Formatter\Element\MarkupElement)) {
+                    if (method_exists($node, 'getOriginNode')) {
+                        $node = $node->getOriginNode();
+                    }
                     if ($this->processNode($node)) {
                         continue;
                     }

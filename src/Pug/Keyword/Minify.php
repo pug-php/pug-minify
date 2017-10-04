@@ -259,6 +259,10 @@ class Minify
 
     protected function getOption($option, $defaultValue = null)
     {
+        if (method_exists($this->pug, 'hasOption') && !$this->pug->hasOption($option)) {
+            return $defaultValue;
+        }
+
         try {
             return $this->pug->getOption($option);
         } catch (\InvalidArgumentException $e) {
@@ -392,6 +396,8 @@ class Minify
         $renderParams->html = $this->renderHtml($renderParams);
         $this->trigger('post-render', $renderParams);
 
-        return $renderParams->html;
+        return array(
+            'begin' => $renderParams->html,
+        );
     }
 }

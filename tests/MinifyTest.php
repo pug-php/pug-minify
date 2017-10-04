@@ -30,7 +30,7 @@ class MinifyTest extends PHPUnit_Framework_TestCase
         }
     }
 
-    protected function clean($text)
+    protected static function clean($text)
     {
         $text = str_replace(', ', ',', $text);
         $text = str_replace('0.', '.', $text);
@@ -38,7 +38,7 @@ class MinifyTest extends PHPUnit_Framework_TestCase
         return $text;
     }
 
-    protected function assertSimilar($expected, $actual, $message = null)
+    protected static function assertSimilar($expected, $actual, $message = null)
     {
         self::assertSame(
             self::clean($expected),
