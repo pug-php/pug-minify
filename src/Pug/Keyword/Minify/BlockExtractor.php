@@ -33,12 +33,15 @@ class BlockExtractor
     protected function getNodeValue($node, $key)
     {
         $attribute = $node->getAttribute($key);
+        while (is_object($attribute) && method_exists($attribute, 'getValue')) {
+            $attribute = $attribute->getValue();
+        }
         if (is_array($attribute)) {
             $attribute = strval($attribute['value']);
         }
 
         return is_string($attribute)
-            ? stripslashes(substr($attribute, 1, -1))
+            ? stripslashes(preg_replace('/^[\'"](.*)[\'"]$/', '$1', $attribute))
             : null;
     }
 
@@ -95,9 +98,6 @@ class BlockExtractor
                     $this->scrollBlock($node);
                 }
                 if (isset($node->name) && ($node instanceof \Jade\Nodes\Tag || $node instanceof \Phug\Formatter\Element\MarkupElement)) {
-                    if (method_exists($node, 'getOriginNode')) {
-                        $node = $node->getOriginNode();
-                    }
                     if ($this->processNode($node)) {
                         continue;
                     }

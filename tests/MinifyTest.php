@@ -32,6 +32,8 @@ class MinifyTest extends PHPUnit_Framework_TestCase
 
     protected static function clean($text)
     {
+        $text = preg_replace('/(>)(<[a-z])/', "\$1\n\$2", $text);
+        $text = preg_replace('/\s{2,}<\//', "\n</", $text);
         $text = str_replace(', ', ',', $text);
         $text = str_replace('0.', '.', $text);
 
@@ -182,6 +184,7 @@ class MinifyTest extends PHPUnit_Framework_TestCase
         $outputDirectory = $this->getTempDir();
 
         $pug = new Pug(array(
+            'environment'     => 'production',
             'prettyprint'     => true,
             'assetDirectory'  => __DIR__,
             'outputDirectory' => $outputDirectory,
@@ -217,6 +220,7 @@ class MinifyTest extends PHPUnit_Framework_TestCase
         $outputDirectory = $this->getTempDir();
 
         $pug = new Pug(array(
+            'environment'     => 'production',
             'prettyprint'     => true,
             'assetDirectory'  => array(dirname(__DIR__), __DIR__, __DIR__ . '/js'),
             'outputDirectory' => $outputDirectory,
@@ -339,6 +343,7 @@ class MinifyTest extends PHPUnit_Framework_TestCase
         $outputDirectory = $this->getTempDir();
 
         $pug = new Pug(array(
+            'environment'     => 'production',
             'prettyprint'     => true,
             'assetDirectory'  => array(dirname(__DIR__), __DIR__, __DIR__ . '/js'),
             'outputDirectory' => $outputDirectory,

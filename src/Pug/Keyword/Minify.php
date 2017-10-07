@@ -7,12 +7,10 @@ use NodejsPhpFallback\Less;
 use NodejsPhpFallback\React;
 use NodejsPhpFallback\Stylus;
 use NodejsPhpFallback\Uglify;
-use Pug\ExtensionContainerInterface;
 use Pug\Keyword\Minify\BlockExtractor;
-use Pug\Keyword\Minify\Extension;
 use Pug\Pug;
 
-class Minify implements ExtensionContainerInterface
+class Minify
 {
     /**
      * @var bool
@@ -58,11 +56,6 @@ class Minify implements ExtensionContainerInterface
         }
 
         $this->pug = $pug;
-    }
-
-    public function getExtension()
-    {
-        return new Extension($this);
     }
 
     protected function path()
@@ -403,8 +396,6 @@ class Minify implements ExtensionContainerInterface
         $renderParams->html = $this->renderHtml($renderParams);
         $this->trigger('post-render', $renderParams);
 
-        return array(
-            'begin' => $renderParams->html,
-        );
+        return $renderParams->html;
     }
 }
