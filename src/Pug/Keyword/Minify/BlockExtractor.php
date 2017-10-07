@@ -2,9 +2,6 @@
 
 namespace Pug\Keyword\Minify;
 
-use Jade\Nodes\Node;
-use Jade\Nodes\Tag;
-
 class BlockExtractor
 {
     /**
@@ -17,7 +14,7 @@ class BlockExtractor
      */
     protected $extractors;
 
-    public function __construct(Node $block)
+    public function __construct($block)
     {
         $this->block = $block;
         $this->extractors = array();
@@ -36,28 +33,45 @@ class BlockExtractor
     protected function getNodeValue($node, $key)
     {
         $attribute = $node->getAttribute($key);
+        while (is_object($attribute) && method_exists($attribute, 'getValue')) {
+            $attribute = $attribute->getValue();
+        }
+        if (is_array($attribute)) {
+            $attribute = strval($attribute['value']);
+        }
 
-        return is_array($attribute)
-            ? stripslashes(substr($attribute['value'], 1, -1))
+        return is_string($attribute)
+            ? stripslashes(preg_replace('/^[\'"](.*)[\'"]$/', '$1', $attribute))
             : null;
     }
 
-    protected function setNodeValue(Tag $node, $key, $value)
+    protected function setNodeValue($node, $key, $value)
     {
+        if (method_exists($node, 'getAttributes')) {
+            foreach ($node->getAttributes() as $attribute) {
+                if ($attribute->getName() === $key) {
+                    $attribute->setValue($value);
+                }
+            }
+
+            return;
+        }
+
         foreach ($node->attributes as &$attribute) {
-            if ($attribute['name'] === $key) {
+            if ((is_array($attribute) || $attribute instanceof \ArrayAccess) && isset($attribute['name']) && $attribute['name'] === $key) {
                 $attribute['value'] = var_export($value, true);
             }
         }
     }
 
-    protected function processNode(Tag $node)
+    protected function processNode($node)
     {
-        if (!isset($this->extractors[$node->name])) {
+        $name = method_exists($node, 'getName') ? $node->getName() : $node->name;
+        if (!isset($this->extractors[$name])) {
             return false;
         }
 
-        list($extractor, $attributes) = $this->extractors[$node->name];
+        list($extractor, $attributes) = $this->extractors[$name];
         $arguments = array();
         foreach ($attributes as $attribute) {
             $arguments[] = $this->getNodeValue($node, $attribute);
@@ -76,17 +90,21 @@ class BlockExtractor
     protected function scrollBlock($block)
     {
         if (isset($block->nodes) && is_array($block->nodes)) {
+            $nodes = array();
             foreach ($block->nodes as $key => $node) {
                 if (isset($node->block) && is_object($node->block)) {
                     $this->scrollBlock($node->block);
+                } elseif (isset($node->nodes) && count($node->nodes)) {
+                    $this->scrollBlock($node);
                 }
-                if (!isset($node->name) || !($node instanceof Tag)) {
-                    continue;
-                }
-                if ($this->processNode($node)) {
-                    unset($block->nodes[$key]);
+                if (isset($node->name) && ($node instanceof \Jade\Nodes\Tag || $node instanceof \Phug\Formatter\Element\MarkupElement)) {
+                    if ($this->processNode($node)) {
+                        continue;
+                    }
+                    $nodes[$key] = $node;
                 }
             }
+            $block->nodes = $nodes;
         }
     }
 }

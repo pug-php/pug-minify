@@ -2,8 +2,6 @@
 
 namespace Pug\Keyword;
 
-use Jade\Jade;
-use Jade\Nodes\Node;
 use NodejsPhpFallback\CoffeeScript;
 use NodejsPhpFallback\Less;
 use NodejsPhpFallback\React;
@@ -45,12 +43,18 @@ class Minify
     protected $events;
 
     /**
-     * @var Pug|Jade
+     * @var \Pug\Pug|\Jade\Jade
      */
     protected $pug;
 
-    public function __construct(Jade $pug)
+    public function __construct($pug)
     {
+        if (!($pug instanceof \Jade\Jade) && !($pug instanceof \Pug\Pug) && !($pug instanceof \Phug\Renderer)) {
+            throw new \InvalidArgumentException(
+                'Allowed pug engine are Jade\\Jade, Pug\\Pug or Phug\\Renderer, ' . get_class($pug) . ' given.'
+            );
+        }
+
         $this->pug = $pug;
     }
 
@@ -255,6 +259,10 @@ class Minify
 
     protected function getOption($option, $defaultValue = null)
     {
+        if (method_exists($this->pug, 'hasOption') && !$this->pug->hasOption($option)) {
+            return $defaultValue;
+        }
+
         try {
             return $this->pug->getOption($option);
         } catch (\InvalidArgumentException $e) {
@@ -368,7 +376,7 @@ class Minify
     {
         $this->initializeRendering();
 
-        if (!($block instanceof Node)) {
+        if (!is_object($block) || !isset($block->nodes)) {
             return '';
         }
 

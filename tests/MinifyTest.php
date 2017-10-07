@@ -30,6 +30,25 @@ class MinifyTest extends PHPUnit_Framework_TestCase
         }
     }
 
+    protected static function clean($text)
+    {
+        $text = preg_replace('/(>)(<[a-z])/', "\$1\n\$2", $text);
+        $text = preg_replace('/\s{2,}<\//', "\n</", $text);
+        $text = str_replace(', ', ',', $text);
+        $text = str_replace('0.', '.', $text);
+
+        return $text;
+    }
+
+    protected static function assertSimilar($expected, $actual, $message = null)
+    {
+        self::assertSame(
+            self::clean($expected),
+            self::clean($actual),
+            $message
+        );
+    }
+
     protected function simpleHtml($html)
     {
         $html = trim(str_replace("\r", '', $html));
@@ -53,6 +72,15 @@ class MinifyTest extends PHPUnit_Framework_TestCase
         return $javascript;
     }
 
+    protected function renderFile($pug, $file)
+    {
+        $method = method_exists($pug, 'renderFile')
+            ? array($pug, 'renderFile')
+            : array($pug, 'render');
+
+        return call_user_func($method, $file);
+    }
+
     public function testDevelopment()
     {
         $this->cleanTempDir();
@@ -66,50 +94,50 @@ class MinifyTest extends PHPUnit_Framework_TestCase
         ));
         $minify = new Minify($pug);
         $pug->addKeyword('minify', $minify);
-        $html = static::simpleHtml($pug->render(__DIR__ . '/test-minify.pug'));
+        $html = static::simpleHtml($this->renderFile($pug, __DIR__ . '/test-minify.pug'));
         $expected = static::simpleHtml(file_get_contents(__DIR__ . '/dev.html'));
 
-        $this->assertSame($expected, $html);
+        self::assertSimilar($expected, $html);
 
         $file = $outputDirectory . '/coffee/test.js';
         $javascript = static::fileGetAsset($file);
         unlink($file);
-        $this->assertSame(static::fileGetAsset(__DIR__ . '/coffee/test.js'), $javascript);
+        self::assertSimilar(static::fileGetAsset(__DIR__ . '/coffee/test.js'), $javascript);
 
         $file = $outputDirectory . '/coffee-pug/test.js';
         $javascript = static::fileGetAsset($file);
         unlink($file);
-        $this->assertSame(static::fileGetAsset(__DIR__ . '/coffee-pug/test.js'), $javascript);
+        self::assertSimilar(static::fileGetAsset(__DIR__ . '/coffee-pug/test.js'), $javascript);
 
         $file = $outputDirectory . '/react/test.js';
         $javascript = static::fileGetAsset($file);
         unlink($file);
-        $this->assertSame(static::fileGetAsset(__DIR__ . '/react/test.js'), $javascript);
+        self::assertSimilar(static::fileGetAsset(__DIR__ . '/react/test.js'), $javascript);
 
         $file = $outputDirectory . '/react-pug/test.js';
         $javascript = static::fileGetAsset($file);
         unlink($file);
-        $this->assertSame(static::fileGetAsset(__DIR__ . '/react-pug/test.js'), $javascript);
+        self::assertSimilar(static::fileGetAsset(__DIR__ . '/react-pug/test.js'), $javascript);
 
         $file = $outputDirectory . '/js/test.js';
         $javascript = static::fileGetAsset($file);
         unlink($file);
-        $this->assertSame(static::fileGetAsset(__DIR__ . '/js/test.js'), $javascript);
+        self::assertSimilar(static::fileGetAsset(__DIR__ . '/js/test.js'), $javascript);
 
         $file = $outputDirectory . '/less/test.css';
         $style = static::fileGetAsset($file);
         unlink($file);
-        $this->assertSame(static::fileGetAsset(__DIR__ . '/less/test.css'), $style);
+        self::assertSimilar(static::fileGetAsset(__DIR__ . '/less/test.css'), $style);
 
         $file = $outputDirectory . '/stylus/test.css';
         $style = static::fileGetAsset($file);
         unlink($file);
-        $this->assertSame(static::fileGetAsset(__DIR__ . '/stylus/test.css'), $style);
+        self::assertSimilar(static::fileGetAsset(__DIR__ . '/stylus/test.css'), $style);
 
         $file = $outputDirectory . '/css/test.css';
         $style = static::fileGetAsset($file);
         unlink($file);
-        $this->assertSame(static::fileGetAsset(__DIR__ . '/css/test.css'), $style);
+        self::assertSimilar(static::fileGetAsset(__DIR__ . '/css/test.css'), $style);
 
         $this->cleanTempDir();
     }
@@ -127,25 +155,25 @@ class MinifyTest extends PHPUnit_Framework_TestCase
         ));
         $minify = new Minify($pug);
         $pug->addKeyword('minify', $minify);
-        $html = static::simpleHtml($pug->render(__DIR__ . '/test-minify.pug'));
+        $html = static::simpleHtml($this->renderFile($pug, __DIR__ . '/test-minify.pug'));
         $expected = static::simpleHtml(file_get_contents(__DIR__ . '/prod-minify.html'));
 
-        $this->assertSame($expected, $html);
+        self::assertSimilar($expected, $html);
 
         $file = $outputDirectory . '/js/top.min.js';
         $javascript = static::fileGetAsset($file);
         unlink($file);
-        $this->assertSame(static::fileGetAsset(__DIR__ . '/js/top.min.js'), $javascript);
+        self::assertSimilar(static::fileGetAsset(__DIR__ . '/js/top.min.js'), $javascript);
 
         $file = $outputDirectory . '/js/bottom.min.js';
         $javascript = static::fileGetAsset($file);
         unlink($file);
-        $this->assertSame(static::fileGetAsset(__DIR__ . '/js/bottom.min.js'), $javascript);
+        self::assertSimilar(static::fileGetAsset(__DIR__ . '/js/bottom.min.js'), $javascript);
 
         $file = $outputDirectory . '/css/top.min.css';
         $style = static::fileGetAsset($file);
         unlink($file);
-        $this->assertSame(static::fileGetAsset(__DIR__ . '/css/top.min.css'), $style);
+        self::assertSimilar(static::fileGetAsset(__DIR__ . '/css/top.min.css'), $style);
 
         $this->cleanTempDir();
     }
@@ -156,31 +184,32 @@ class MinifyTest extends PHPUnit_Framework_TestCase
         $outputDirectory = $this->getTempDir();
 
         $pug = new Pug(array(
+            'environment'     => 'production',
             'prettyprint'     => true,
             'assetDirectory'  => __DIR__,
             'outputDirectory' => $outputDirectory,
         ));
         $minify = new Minify($pug);
         $pug->addKeyword('concat', $minify);
-        $html = static::simpleHtml($pug->render(__DIR__ . '/test-concat.pug'));
+        $html = static::simpleHtml($this->renderFile($pug, __DIR__ . '/test-concat.pug'));
         $expected = static::simpleHtml(file_get_contents(__DIR__ . '/prod-concat.html'));
 
-        $this->assertSame($expected, $html);
+        self::assertSimilar($expected, $html);
 
         $file = $outputDirectory . '/js/top.js';
         $javascript = static::fileGetAsset($file);
         unlink($file);
-        $this->assertSame(static::fileGetAsset(__DIR__ . '/js/top.js'), $javascript);
+        self::assertSimilar(static::fileGetAsset(__DIR__ . '/js/top.js'), $javascript);
 
         $file = $outputDirectory . '/js/bottom.js';
         $javascript = static::fileGetAsset($file);
         unlink($file);
-        $this->assertSame(static::fileGetAsset(__DIR__ . '/js/bottom.js'), $javascript);
+        self::assertSimilar(static::fileGetAsset(__DIR__ . '/js/bottom.js'), $javascript);
 
         $file = $outputDirectory . '/css/top.css';
         $style = static::fileGetAsset($file);
         unlink($file);
-        $this->assertSame(static::fileGetAsset(__DIR__ . '/css/top.css'), $style);
+        self::assertSimilar(static::fileGetAsset(__DIR__ . '/css/top.css'), $style);
 
         $this->cleanTempDir();
     }
@@ -191,31 +220,32 @@ class MinifyTest extends PHPUnit_Framework_TestCase
         $outputDirectory = $this->getTempDir();
 
         $pug = new Pug(array(
+            'environment'     => 'production',
             'prettyprint'     => true,
             'assetDirectory'  => array(dirname(__DIR__), __DIR__, __DIR__ . '/js'),
             'outputDirectory' => $outputDirectory,
         ));
         $minify = new Minify($pug);
         $pug->addKeyword('concat', $minify);
-        $html = static::simpleHtml($pug->render(__DIR__ . '/test-concat.pug'));
+        $html = static::simpleHtml($this->renderFile($pug, __DIR__ . '/test-concat.pug'));
         $expected = static::simpleHtml(file_get_contents(__DIR__ . '/prod-concat.html'));
 
-        $this->assertSame($expected, $html);
+        self::assertSimilar($expected, $html);
 
         $file = $outputDirectory . '/js/top.js';
         $javascript = static::fileGetAsset($file);
         unlink($file);
-        $this->assertSame(static::fileGetAsset(__DIR__ . '/js/top.js'), $javascript);
+        self::assertSimilar(static::fileGetAsset(__DIR__ . '/js/top.js'), $javascript);
 
         $file = $outputDirectory . '/js/bottom.js';
         $javascript = static::fileGetAsset($file);
         unlink($file);
-        $this->assertSame(static::fileGetAsset(__DIR__ . '/js/bottom.js'), $javascript);
+        self::assertSimilar(static::fileGetAsset(__DIR__ . '/js/bottom.js'), $javascript);
 
         $file = $outputDirectory . '/css/top.css';
         $style = static::fileGetAsset($file);
         unlink($file);
-        $this->assertSame(static::fileGetAsset(__DIR__ . '/css/top.css'), $style);
+        self::assertSimilar(static::fileGetAsset(__DIR__ . '/css/top.css'), $style);
 
         $this->cleanTempDir();
     }
@@ -273,26 +303,26 @@ class MinifyTest extends PHPUnit_Framework_TestCase
             return $params;
         });
         $pug->addKeyword('minify', $minify);
-        $html = static::simpleHtml($pug->render(__DIR__ . '/test-minify.pug'));
+        $html = static::simpleHtml($this->renderFile($pug, __DIR__ . '/test-minify.pug'));
         $expected = static::simpleHtml(file_get_contents(__DIR__ . '/hooks.html'));
 
-        $this->assertSame($expected, $html);
-        $this->assertSame(3, $minifications, 'CSS and JS on the top + JS on the bottom should trigger the pre-minify event 3 times.');
+        self::assertSimilar($expected, $html);
+        self::assertSimilar(3, $minifications, 'CSS and JS on the top + JS on the bottom should trigger the pre-minify event 3 times.');
 
         $file = $outputDirectory . '/js/up.min.js';
         $javascript = static::fileGetAsset($file);
         unlink($file);
-        $this->assertSame(static::fileGetAsset(__DIR__ . '/js/up.min.js.copy'), $javascript);
+        self::assertSimilar(static::fileGetAsset(__DIR__ . '/js/up.min.js.copy'), $javascript);
 
         $file = $outputDirectory . '/js/bottom.min.js';
         $javascript = static::fileGetAsset($file);
         unlink($file);
-        $this->assertSame(str_replace('Hello', 'Bye', static::fileGetAsset(__DIR__ . '/js/bottom.min.js')), $javascript);
+        self::assertSimilar(str_replace('Hello', 'Bye', static::fileGetAsset(__DIR__ . '/js/bottom.min.js')), $javascript);
 
         $file = $outputDirectory . '/css/up.min.css';
         $style = static::fileGetAsset($file);
         unlink($file);
-        $this->assertSame(str_replace('Hello', 'Bye', static::fileGetAsset(__DIR__ . '/css/up.min.css')), $style);
+        self::assertSimilar(str_replace('Hello', 'Bye', static::fileGetAsset(__DIR__ . '/css/up.min.css')), $style);
 
         $this->cleanTempDir();
 
@@ -313,6 +343,7 @@ class MinifyTest extends PHPUnit_Framework_TestCase
         $outputDirectory = $this->getTempDir();
 
         $pug = new Pug(array(
+            'environment'     => 'production',
             'prettyprint'     => true,
             'assetDirectory'  => array(dirname(__DIR__), __DIR__, __DIR__ . '/js'),
             'outputDirectory' => $outputDirectory,
@@ -324,10 +355,10 @@ class MinifyTest extends PHPUnit_Framework_TestCase
             return $params;
         });
         $pug->addKeyword('minify', $minify);
-        $html = static::simpleHtml($pug->render(__DIR__ . '/test-minify.pug'));
+        $html = static::simpleHtml($this->renderFile($pug, __DIR__ . '/test-minify.pug'));
         $expected = static::simpleHtml(file_get_contents(__DIR__ . '/issue4.html'));
 
-        $this->assertSame($expected, $html);
+        self::assertSimilar($expected, $html);
 
         $this->cleanTempDir();
     }
