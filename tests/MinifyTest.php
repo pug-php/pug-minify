@@ -87,10 +87,11 @@ class MinifyTest extends PHPUnit_Framework_TestCase
         $outputDirectory = $this->getTempDir();
 
         $pug = new Pug(array(
-            'prettyprint'     => true,
-            'assetDirectory'  => __DIR__,
-            'outputDirectory' => $outputDirectory,
-            'environment'     => 'development',
+            'prettyprint'        => true,
+            'assetDirectory'     => __DIR__,
+            'outputDirectory'    => $outputDirectory,
+            'environment'        => 'development',
+            'execution_max_time' => 300000,
         ));
         $minify = new Minify($pug);
         $pug->addKeyword('minify', $minify);
@@ -148,10 +149,11 @@ class MinifyTest extends PHPUnit_Framework_TestCase
         $outputDirectory = $this->getTempDir();
 
         $pug = new Pug(array(
-            'prettyprint'     => true,
-            'assetDirectory'  => __DIR__,
-            'outputDirectory' => $outputDirectory,
-            'environment'     => 'production',
+            'prettyprint'        => true,
+            'assetDirectory'     => __DIR__,
+            'outputDirectory'    => $outputDirectory,
+            'environment'        => 'production',
+            'execution_max_time' => 300000,
         ));
         $minify = new Minify($pug);
         $pug->addKeyword('minify', $minify);
@@ -184,10 +186,11 @@ class MinifyTest extends PHPUnit_Framework_TestCase
         $outputDirectory = $this->getTempDir();
 
         $pug = new Pug(array(
-            'environment'     => 'production',
-            'prettyprint'     => true,
-            'assetDirectory'  => __DIR__,
-            'outputDirectory' => $outputDirectory,
+            'environment'        => 'production',
+            'prettyprint'        => true,
+            'assetDirectory'     => __DIR__,
+            'outputDirectory'    => $outputDirectory,
+            'execution_max_time' => 300000,
         ));
         $minify = new Minify($pug);
         $pug->addKeyword('concat', $minify);
@@ -220,10 +223,11 @@ class MinifyTest extends PHPUnit_Framework_TestCase
         $outputDirectory = $this->getTempDir();
 
         $pug = new Pug(array(
-            'environment'     => 'production',
-            'prettyprint'     => true,
-            'assetDirectory'  => array(dirname(__DIR__), __DIR__, __DIR__ . '/js'),
-            'outputDirectory' => $outputDirectory,
+            'environment'        => 'production',
+            'prettyprint'        => true,
+            'assetDirectory'     => array(dirname(__DIR__), __DIR__, __DIR__ . '/js'),
+            'outputDirectory'    => $outputDirectory,
+            'execution_max_time' => 300000,
         ));
         $minify = new Minify($pug);
         $pug->addKeyword('concat', $minify);
@@ -259,10 +263,11 @@ class MinifyTest extends PHPUnit_Framework_TestCase
         $outputDirectory = $this->getTempDir();
 
         $pug = new Pug(array(
-            'prettyprint'     => true,
-            'assetDirectory'  => __DIR__,
-            'outputDirectory' => $outputDirectory,
-            'environment'     => 'production',
+            'prettyprint'        => true,
+            'assetDirectory'     => __DIR__,
+            'outputDirectory'    => $outputDirectory,
+            'environment'        => 'production',
+            'execution_max_time' => 300000,
         ));
         $minify = new Minify($pug);
         $minify->on('pre-write', function ($params) {
@@ -343,10 +348,11 @@ class MinifyTest extends PHPUnit_Framework_TestCase
         $outputDirectory = $this->getTempDir();
 
         $pug = new Pug(array(
-            'environment'     => 'production',
-            'prettyprint'     => true,
-            'assetDirectory'  => array(dirname(__DIR__), __DIR__, __DIR__ . '/js'),
-            'outputDirectory' => $outputDirectory,
+            'environment'        => 'production',
+            'prettyprint'        => true,
+            'assetDirectory'     => array(dirname(__DIR__), __DIR__, __DIR__ . '/js'),
+            'outputDirectory'    => $outputDirectory,
+            'execution_max_time' => 300000,
         ));
         $minify = new Minify($pug);
         $minify->on('post-minify', function ($params) {
