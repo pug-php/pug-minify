@@ -55,6 +55,7 @@ class MinifyTest extends PHPUnit_Framework_TestCase
         $html = preg_replace('/\?\d+/', '', $html);
         $html = preg_replace('/\s+\n/', "\n", $html);
         $html = preg_replace('/(<\/\w+>)([ \t]*)</', "\$1\n\$2<", $html);
+        $html = preg_replace('/(>)[ \t]*(<(meta|link|script))/', "\$1\n\$2", $html);
         $html = preg_replace('/^([ \t]*)/m', '', $html);
 
         return $html;
