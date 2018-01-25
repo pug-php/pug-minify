@@ -31,7 +31,7 @@ matrix:
       env: PUG_VERSION='2.7.1'
       dist: trusty
       sudo: required
-    - php: hhvm
+    - php: hhvm-3.18
       env: PUG_VERSION='^3.0@alpha'
       dist: trusty
       sudo: required
