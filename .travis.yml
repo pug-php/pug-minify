@@ -41,6 +41,10 @@ matrix:
       dist: trusty
       sudo: required
   fast_finish: true
+before_install:
+  - npm i -g npm@6.1.0
+  - nvm install 9.8.0
+  - nvm use 9.8.0
 before_script:
   - travis_retry composer self-update
   - if [ "$PUG_VERSION" != "" ]; then travis_retry composer require "pug-php/pug:${PUG_VERSION}" --no-update; fi;
