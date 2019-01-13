@@ -8,6 +8,12 @@
 One keyword to minify them all (the assets: JS, CSS, Stylus, Less, Coffee,
 React) in your pug-php template.
 
+## Install
+
+```shell
+composer require pug-php/pug-minify
+```
+
 ## Usage
 
 ```php
