@@ -2,6 +2,7 @@
     "name": "pug-php/pug-minify",
     "description": "One keyword to minify them all (the assets: JS, CSS, Stylus, minify, Coffee, React) in your pug-php template.",
     "type": "library",
+    "license": "MIT",
     "authors": [
         {
             "name": "Kyle",
