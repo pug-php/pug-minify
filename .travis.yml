@@ -2,46 +2,46 @@ language: php
 matrix:
   include:
     - php: 5.3
-      env: PUG_VERSION='2.7.1'
+      env: PUG_VERSION='^2.7'
       dist: precise
       sudo: required
     - php: 5.4
-      env: PUG_VERSION='2.7.1'
+      env: PUG_VERSION='^2.7'
     - php: 5.5
-      env: PUG_VERSION='2.7.1'
+      env: PUG_VERSION='^2.7'
     - php: 5.5
       env: PUG_VERSION='^3.0'
     - php: 5.6
-      env: PUG_VERSION='2.7.1'
+      env: PUG_VERSION='^2.7'
     - php: 5.6
       env: PUG_VERSION='^3.0'
     - php: 7.0
-      env: PUG_VERSION='2.7.1'
+      env: PUG_VERSION='^2.7'
     - php: 7.0
       env: PUG_VERSION='^3.0'
     - php: 7.1
-      env: PUG_VERSION='2.7.1'
+      env: PUG_VERSION='^2.7'
     - php: 7.1
       env: PUG_VERSION='^3.0'
     - php: 7.2
-      env: PUG_VERSION='2.7.1'
+      env: PUG_VERSION='^2.7'
     - php: 7.2
       env: PUG_VERSION='^3.0'
     - php: 7.3
-      env: PUG_VERSION='2.7.1'
+      env: PUG_VERSION='^2.7'
     - php: 7.3
       env: PUG_VERSION='^3.0'
     - php: hhvm
-      env: PUG_VERSION='2.7.1'
+      env: PUG_VERSION='^2.7'
       dist: trusty
       sudo: required
   allow_failures:
     - php: hhvm-3.18
-      env: PUG_VERSION='^3.0@alpha'
+      env: PUG_VERSION='^3.0'
       dist: trusty
       sudo: required
     - php: hhvm
-      env: PUG_VERSION='2.7.1'
+      env: PUG_VERSION='^2.7'
       dist: trusty
       sudo: required
   fast_finish: true
