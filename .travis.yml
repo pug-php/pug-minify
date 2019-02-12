@@ -31,20 +31,6 @@ matrix:
       env: PUG_VERSION='^2.7'
     - php: 7.3
       env: PUG_VERSION='^3.0'
-    - php: hhvm
-      env: PUG_VERSION='^2.7'
-      dist: trusty
-      sudo: required
-  allow_failures:
-    - php: hhvm-3.18
-      env: PUG_VERSION='^3.0'
-      dist: trusty
-      sudo: required
-    - php: hhvm
-      env: PUG_VERSION='^2.7'
-      dist: trusty
-      sudo: required
-  fast_finish: true
 before_install:
   - npm i -g npm@6.1.0
   - nvm install 9.8.0
