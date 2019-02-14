@@ -1,8 +1,9 @@
 ---
-engines:
+version: "2"
+plugins:
   duplication:
     enabled: true
-    exclude_paths:
+    exclude_patterns:
     - "tests/"
     config:
       languages:
@@ -19,15 +20,11 @@ engines:
     - 9a2a72fb96d7ecc9c5338bd17c8b82ac
     # Need $event to get the next parameter $ref
     - a7b0748112e24a59b9c29c38ba42b82e
-plugins:
   phpcodesniffer:
-    enabled: true
-  phpmd:
     enabled: true
   SonarPHP:
     enabled: true
   phan:
     enabled: true
-ratings:
-  paths:
-  - "**.php"
+exclude_patterns:
+- "tests/"
