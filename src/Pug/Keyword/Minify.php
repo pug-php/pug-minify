@@ -300,11 +300,17 @@ class Minify
     {
         foreach ($this->events[$event] as $action) {
             if (is_callable($action)) {
-                $newParams = call_user_func($action, $params, $event, $this);
-                if (is_object($newParams)) {
-                    $params = $newParams;
-                }
+                $this->triggerEventAction($action, $event, $params);
             }
+        }
+    }
+
+    private function triggerEventAction($action, $event, &$params = null)
+    {
+        $newParams = call_user_func($action, $params, $event, $this);
+
+        if (is_object($newParams)) {
+            $params = $newParams;
         }
     }
 

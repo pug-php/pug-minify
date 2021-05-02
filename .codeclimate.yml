@@ -27,10 +27,6 @@ plugins:
   phan:
     enabled: true
     config:
-      directory_list:
-        - "src/"
-        - "vendor/"
-      exclude_analysis_directory_list:
-        - "vendor/"
+      ignore-undeclared: true
 exclude_patterns:
 - "tests/"

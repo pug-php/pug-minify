@@ -20,17 +20,22 @@ class Path
             $copy = $parts;
             $parts[0] = $bases[0];
 
-            foreach ($bases as $base) {
-                $copy[0] = $base;
-
-                if (file_exists(implode(DIRECTORY_SEPARATOR, $copy))) {
-                    $parts[0] = $base;
-
-                    break;
-                }
-            }
+            $this->substituteBasePath($parts, $bases, $copy);
         }
 
         return implode(DIRECTORY_SEPARATOR, $parts);
+    }
+
+    private function substituteBasePath(&$parts, $bases, $copy)
+    {
+        foreach ($bases as $base) {
+            $copy[0] = $base;
+
+            if (file_exists(implode(DIRECTORY_SEPARATOR, $copy))) {
+                $parts[0] = $base;
+
+                break;
+            }
+        }
     }
 }
