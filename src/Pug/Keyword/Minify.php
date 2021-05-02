@@ -347,30 +347,31 @@ class Minify
         $event = $renderParams->minify ? 'minify' : 'concat';
 
         if (count($this->js)) {
-            $params = (object) array(
-                'language' => 'js',
-                'path'     => $renderParams->arguments,
-            );
-            $this->trigger('pre-' . $event, $params);
-            $this->$compilation($params);
-            $this->trigger('post-' . $event, $params);
-
-            $html .= '<script src="' . $params->outputFile . '"></script>';
+            $html .= '<script src="' .
+                $this->getOutputFile('js', $compilation, $event, $renderParams) .
+                '"></script>';
         }
 
         if (count($this->css)) {
-            $params = (object) array(
-                'language' => 'css',
-                'path'     => $renderParams->arguments,
-            );
-            $this->trigger('pre-' . $event, $params);
-            $this->$compilation($params);
-            $this->trigger('post-' . $event, $params);
-
-            $html .= '<link rel="stylesheet" href="' . $params->outputFile . '">';
+            $html .= '<link rel="stylesheet" href="' .
+                $this->getOutputFile('css', $compilation, $event, $renderParams) .
+                '">';
         }
 
         return $html;
+    }
+
+    private function getOutputFile($language, $compilation, $event, $renderParams)
+    {
+        $params = (object) array(
+            'language' => $language,
+            'path'     => $renderParams->arguments,
+        );
+        $this->trigger('pre-' . $event, $params);
+        $this->$compilation($params);
+        $this->trigger('post-' . $event, $params);
+
+        return $params->outputFile;
     }
 
     public function __invoke($arguments, $block, $keyword)
