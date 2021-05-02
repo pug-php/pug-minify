@@ -19,7 +19,7 @@
         "nodejs-php-fallback/uglify": "^1.0.2"
     },
     "require-dev": {
-        "composer/composer": "^1.2 || ^2.0",
+        "composer/composer": "^1.2 || ^2.0.13",
         "phpunit/phpunit": "^4.8.36 || ^5.7.27 || ^8.5.15"
     },
     "autoload": {
