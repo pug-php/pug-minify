@@ -15,11 +15,11 @@
         "nodejs-php-fallback/stylus": "^1.0",
         "nodejs-php-fallback/coffeescript": "^1.0",
         "nodejs-php-fallback/react": "^1.0",
-        "nodejs-php-fallback/uglify": "^1.0.1"
+        "nodejs-php-fallback/uglify": "^1.0.2"
     },
     "require-dev": {
-        "composer/composer": "^1.2",
-        "phpunit/phpunit": ">=4.8 <6.0"
+        "composer/composer": "^1.2 || ^2.0",
+        "phpunit/phpunit": "^4.8.36 || ^5.7.27"
     },
     "autoload": {
         "psr-0": {
