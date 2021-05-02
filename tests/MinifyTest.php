@@ -1,9 +1,10 @@
 <?php
 
+use PHPUnit\Framework\TestCase;
 use Pug\Keyword\Minify;
 use Pug\Pug;
 
-class MinifyTest extends PHPUnit_Framework_TestCase
+class MinifyTest extends TestCase
 {
     protected function getTempDir()
     {
