@@ -3,10 +3,6 @@
 namespace Pug\Keyword;
 
 use InvalidArgumentException;
-use NodejsPhpFallback\CoffeeScript;
-use NodejsPhpFallback\Less;
-use NodejsPhpFallback\React;
-use NodejsPhpFallback\Stylus;
 use NodejsPhpFallback\Uglify;
 use Pug\Keyword\Minify\AssetParser;
 use Pug\Keyword\Minify\BlockExtractor;
@@ -14,7 +10,6 @@ use Pug\Keyword\Minify\InJsPugParser;
 use Pug\Keyword\Minify\Path;
 use Pug\Keyword\Minify\ScriptParser;
 use Pug\Keyword\Minify\StyleParser;
-use Pug\Pug;
 
 class Minify
 {
