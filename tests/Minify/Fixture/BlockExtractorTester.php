@@ -12,4 +12,16 @@ class BlockExtractorTester extends BlockExtractor
 
         return $this->block->nodes;
     }
+
+    public function getNodeAttributeValue()
+    {
+        require_once __DIR__ . '/FakeNode.php';
+
+        return $this->getNodeValue(new FakeNode(), 'fake');
+    }
+
+    public function changeValue($node)
+    {
+        $this->setNodeValue($node, 'bar', 'after');
+    }
 }

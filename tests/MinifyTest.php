@@ -2,8 +2,11 @@
 
 namespace Pug\Keyword\Test;
 
+use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 use Pug\Keyword\Minify;
+use Pug\Keyword\Test\Minify\Fixture\MinifyTester;
+use Pug\Keyword\Test\Minify\Fixture\Pug2;
 use Pug\Pug;
 
 class MinifyTest extends TestCase
@@ -359,6 +362,9 @@ class MinifyTest extends TestCase
             'execution_max_time' => 300000,
         ));
         $minify = new Minify($pug);
+
+        self::assertSame('', $minify(array(), '', 'uglify'));
+
         $minify->on('post-minify', function ($params) {
             $params->outputFile = '/' . $params->outputFile;
 
@@ -371,5 +377,28 @@ class MinifyTest extends TestCase
         self::assertSimilar($expected, $html);
 
         $this->cleanTempDir();
+    }
+
+    public function testConstructException()
+    {
+        $message = null;
+
+        try {
+            new Minify((object) array());
+        } catch (InvalidArgumentException $exception) {
+            $message = $exception->getMessage();
+        }
+
+        self::assertSame('Allowed pug engine are Jade\\Jade, Pug\\Pug or Phug\\Renderer, stdClass given.', $message);
+    }
+
+    public function testGetOption()
+    {
+        require_once __DIR__ . '/Minify/Fixture/MinifyTester.php';
+        require_once __DIR__ . '/Minify/Fixture/Pug2.php';
+
+        $minify = new MinifyTester(new Pug2());
+
+        self::assertNull($minify->callGetOption('testOption'));
     }
 }

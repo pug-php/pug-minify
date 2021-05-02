@@ -2,6 +2,7 @@
 
 namespace Pug\Keyword;
 
+use InvalidArgumentException;
 use NodejsPhpFallback\CoffeeScript;
 use NodejsPhpFallback\Less;
 use NodejsPhpFallback\React;
@@ -50,7 +51,7 @@ class Minify
     public function __construct($pug)
     {
         if (!($pug instanceof \Jade\Jade) && !($pug instanceof \Pug\Pug) && !($pug instanceof \Phug\Renderer)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Allowed pug engine are Jade\\Jade, Pug\\Pug or Phug\\Renderer, ' . get_class($pug) . ' given.'
             );
         }
@@ -136,7 +137,7 @@ class Minify
         return array($extension, $path, $source, $destination);
     }
 
-    protected function needUpate($source, $destination)
+    protected function needUpdate($source, $destination)
     {
         return !$this->dev || !file_exists($destination) || filemtime($source) >= filemtime($destination);
     }
@@ -151,7 +152,7 @@ class Minify
             'source'      => $source,
             'destination' => $destination,
         );
-        if ($this->needUpate($params->source, $params->destination)) {
+        if ($this->needUpdate($params->source, $params->destination)) {
             switch ($params->extension) {
                 case 'jsxp':
                     $params->contents = preg_replace_callback('/(?<!\s)(\s*)::`(([^`]+|(?<!`)`(?!`))*?)`(?!`)/', array($this, 'parsePugInJsx'), file_get_contents($params->source));
@@ -195,7 +196,7 @@ class Minify
             'source'      => $source,
             'destination' => $destination,
         );
-        if ($this->needUpate($params->source, $params->destination)) {
+        if ($this->needUpdate($params->source, $params->destination)) {
             $this->trigger('pre-parse', $params);
             switch ($params->extension) {
                 case 'styl':
@@ -265,7 +266,7 @@ class Minify
 
         try {
             return $this->pug->getOption($option);
-        } catch (\InvalidArgumentException $e) {
+        } catch (InvalidArgumentException $e) {
             return $defaultValue;
         }
     }

@@ -2,6 +2,7 @@
 
 namespace Pug\Keyword\Minify;
 
+use ArrayAccess;
 use Jade\Nodes\Node;
 use Jade\Nodes\Tag;
 use Phug\Formatter\Element\MarkupElement;
@@ -62,7 +63,7 @@ class BlockExtractor
         }
 
         foreach ($node->attributes as &$attribute) {
-            if ((is_array($attribute) || $attribute instanceof \ArrayAccess) && isset($attribute['name']) && $attribute['name'] === $key) {
+            if ((is_array($attribute) || $attribute instanceof ArrayAccess) && isset($attribute['name']) && $attribute['name'] === $key) {
                 $attribute['value'] = var_export($value, true);
             }
         }
