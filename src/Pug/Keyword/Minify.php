@@ -9,6 +9,7 @@ use NodejsPhpFallback\React;
 use NodejsPhpFallback\Stylus;
 use NodejsPhpFallback\Uglify;
 use Pug\Keyword\Minify\BlockExtractor;
+use Pug\Keyword\Minify\Path;
 use Pug\Pug;
 
 class Minify
@@ -80,7 +81,9 @@ class Minify
 
     protected function prepareDirectory($path)
     {
+        $path = (string) $path;
         $directory = dirname($path);
+
         if (!is_dir($directory)) {
             mkdir($directory, 0777, true);
         }
@@ -129,12 +132,12 @@ class Minify
 
     protected function getPathInfo($path, $newExtension)
     {
-        $source = $this->path($this->assetDirectory, $path);
+        $source = new Path($this->assetDirectory, $path);
         $extension = pathinfo($path, PATHINFO_EXTENSION);
         $path = substr($path, 0, -strlen($extension)) . $newExtension;
-        $destination = $this->prepareDirectory($this->path($this->outputDirectory, $path));
+        $destination = $this->prepareDirectory(new Path($this->outputDirectory, $path));
 
-        return array($extension, $path, $source, $destination);
+        return array($extension, $path, (string) $source, $destination);
     }
 
     protected function needUpdate($source, $destination)
@@ -229,7 +232,7 @@ class Minify
         $params->outputFile = $outputFile;
         $params->content = $uglify->getResult();
         $this->trigger('pre-write', $params);
-        $path = $this->path($params->outputDirectory, $params->outputFile);
+        $path = new Path($params->outputDirectory, $params->outputFile);
         $path = $this->prepareDirectory($path);
         $params->outputPath = $path;
         file_put_contents($path, $params->content);
@@ -251,7 +254,7 @@ class Minify
         $params->outputFile = $outputFile;
         $params->content = $output;
         $this->trigger('pre-write', $params);
-        $path = $this->path($params->outputDirectory, $params->outputFile);
+        $path = new Path($params->outputDirectory, $params->outputFile);
         $path = $this->prepareDirectory($path);
         $params->outputPath = $path;
         file_put_contents($path, $params->content);

@@ -1,0 +1,36 @@
+<?php
+
+namespace Pug\Keyword\Minify;
+
+class Path
+{
+    private $parts;
+
+    public function __construct()
+    {
+        $this->parts = array_filter(func_get_args());
+    }
+
+    public function __toString()
+    {
+        $parts = $this->parts;
+
+        if (isset($parts[0]) && is_array($parts[0])) {
+            $bases = $parts[0];
+            $copy = $parts;
+            $parts[0] = $bases[0];
+
+            foreach ($bases as $base) {
+                $copy[0] = $base;
+
+                if (file_exists(implode(DIRECTORY_SEPARATOR, $copy))) {
+                    $parts[0] = $base;
+
+                    break;
+                }
+            }
+        }
+
+        return implode(DIRECTORY_SEPARATOR, $parts);
+    }
+}
