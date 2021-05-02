@@ -1,5 +1,7 @@
 <?php
 
+namespace Pug\Keyword\Test;
+
 use PHPUnit\Framework\TestCase;
 use Pug\Keyword\Minify;
 use Pug\Pug;
@@ -41,7 +43,7 @@ class MinifyTest extends TestCase
         return $text;
     }
 
-    protected static function assertSimilar($expected, $actual, $message = null)
+    protected static function assertSimilar($expected, $actual, $message = '')
     {
         self::assertSame(
             self::clean($expected),

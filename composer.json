@@ -10,6 +10,7 @@
         }
     ],
     "require": {
+        "php": ">=5.3",
         "pug-php/pug": "^2.0 || ^3.0",
         "nodejs-php-fallback/less": "^1.0",
         "nodejs-php-fallback/stylus": "^1.0",
@@ -19,7 +20,7 @@
     },
     "require-dev": {
         "composer/composer": "^1.2 || ^2.0",
-        "phpunit/phpunit": "^4.8.36 || ^5.7.27"
+        "phpunit/phpunit": "^4.8.36 || ^5.7.27 || ^8.5.15"
     },
     "autoload": {
         "psr-0": {
