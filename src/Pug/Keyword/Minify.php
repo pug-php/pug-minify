@@ -3,13 +3,13 @@
 namespace Pug\Keyword;
 
 use InvalidArgumentException;
-use NodejsPhpFallback\CoffeeScript;
-use NodejsPhpFallback\Less;
-use NodejsPhpFallback\React;
-use NodejsPhpFallback\Stylus;
 use NodejsPhpFallback\Uglify;
+use Pug\Keyword\Minify\AssetParser;
 use Pug\Keyword\Minify\BlockExtractor;
-use Pug\Pug;
+use Pug\Keyword\Minify\InJsPugParser;
+use Pug\Keyword\Minify\Path;
+use Pug\Keyword\Minify\ScriptParser;
+use Pug\Keyword\Minify\StyleParser;
 
 class Minify
 {
@@ -59,28 +59,11 @@ class Minify
         $this->pug = $pug;
     }
 
-    protected function path()
-    {
-        $parts = array_filter(func_get_args());
-        if (isset($parts[0]) && is_array($parts[0])) {
-            $bases = $parts[0];
-            $copy = $parts;
-            $parts[0] = $bases[0];
-            foreach ($bases as $base) {
-                $copy[0] = $base;
-                if (file_exists(implode(DIRECTORY_SEPARATOR, $copy))) {
-                    $parts[0] = $base;
-                    break;
-                }
-            }
-        }
-
-        return implode(DIRECTORY_SEPARATOR, $parts);
-    }
-
     protected function prepareDirectory($path)
     {
+        $path = (string) $path;
         $directory = dirname($path);
+
         if (!is_dir($directory)) {
             mkdir($directory, 0777, true);
         }
@@ -90,25 +73,13 @@ class Minify
 
     protected function parsePugInJs($code, $indent = '', $classAttribute = null)
     {
-        $code = str_replace("\r", '', $code);
-
-        if (preg_match('/^[ \t]*\n/', $code)) {
-            $code = explode("\n", $code, 2);
-            $code = $code[1];
-            if (preg_match('/^[ \t]+/', $code, $match)) {
-                $indent = $match[0];
-            }
-        }
-
-        $code = preg_replace('/(^' . preg_quote($indent) . '|(?<=\n)' . preg_quote($indent) . ')/', '', $code);
-
-        $pug = new Pug(array(
+        $parser = new InJsPugParser(array(
             'classAttribute' => $classAttribute,
             'singleQuote'    => $this->getOption('singleQuote'),
             'prettyprint'    => $this->getOption('prettyprint'),
         ));
 
-        return $pug->render($code);
+        return $parser->parse($code, $indent);
     }
 
     protected function parsePugInJsx($parameters)
@@ -129,17 +100,38 @@ class Minify
 
     protected function getPathInfo($path, $newExtension)
     {
-        $source = $this->path($this->assetDirectory, $path);
+        $source = new Path($this->assetDirectory, $path);
         $extension = pathinfo($path, PATHINFO_EXTENSION);
         $path = substr($path, 0, -strlen($extension)) . $newExtension;
-        $destination = $this->prepareDirectory($this->path($this->outputDirectory, $path));
+        $destination = $this->prepareDirectory(new Path($this->outputDirectory, $path));
 
-        return array($extension, $path, $source, $destination);
+        return array($extension, $path, (string) $source, $destination);
     }
 
     protected function needUpdate($source, $destination)
     {
         return !$this->dev || !file_exists($destination) || filemtime($source) >= filemtime($destination);
+    }
+
+    protected function prepareSource($params)
+    {
+        switch ($params->extension) {
+            case 'jsxp':
+                $params->contents = preg_replace_callback(
+                    '/(?<!\s)(\s*)::`(([^`]+|(?<!`)`(?!`))*?)`(?!`)/',
+                    array($this, 'parsePugInJsx'),
+                    file_get_contents($params->source)
+                );
+                break;
+
+            case 'cofp':
+                $params->contents = preg_replace_callback(
+                    '/(?<!\s)(\s*)::"""([\s\S]*?)"""/',
+                    array($this, 'parsePugInCoffee'),
+                    file_get_contents($params->source)
+                );
+                break;
+        }
     }
 
     protected function parseScript($path)
@@ -152,38 +144,22 @@ class Minify
             'source'      => $source,
             'destination' => $destination,
         );
+
         if ($this->needUpdate($params->source, $params->destination)) {
-            switch ($params->extension) {
-                case 'jsxp':
-                    $params->contents = preg_replace_callback('/(?<!\s)(\s*)::`(([^`]+|(?<!`)`(?!`))*?)`(?!`)/', array($this, 'parsePugInJsx'), file_get_contents($params->source));
-                    break;
-                case 'cofp':
-                    $params->contents = preg_replace_callback('/(?<!\s)(\s*)::"""([\s\S]*?)"""/', array($this, 'parsePugInCoffee'), file_get_contents($params->source));
-                    break;
-            }
+            $this->prepareSource($params);
             $this->trigger('pre-parse', $params);
-            switch ($params->extension) {
-                case 'jsxp':
-                    $this->writeWith(new React($params->contents), $destination);
-                    break;
-                case 'jsx':
-                    $this->writeWith(new React($params->source), $params->destination);
-                    break;
-                case 'cofp':
-                    $this->writeWith(new Coffeescript($params->contents), $params->destination);
-                    break;
-                case 'coffee':
-                    $this->writeWith(new Coffeescript($params->source), $params->destination);
-                    break;
-                default:
-                    copy($params->source, $params->destination);
-            }
+            $parser = new ScriptParser($params, $destination);
+            $this->handleParsing($params, $parser);
             $this->trigger('post-parse', $params);
         }
+
         if ($this->dev) {
             return $params->path . '?' . time();
         }
+
         $this->js[] = $destination;
+
+        return null;
     }
 
     protected function parseStyle($path)
@@ -196,24 +172,37 @@ class Minify
             'source'      => $source,
             'destination' => $destination,
         );
+
         if ($this->needUpdate($params->source, $params->destination)) {
             $this->trigger('pre-parse', $params);
-            switch ($params->extension) {
-                case 'styl':
-                    $this->writeWith(new Stylus($params->source), $params->destination);
-                    break;
-                case 'less':
-                    $this->writeWith(new Less($params->source), $params->destination);
-                    break;
-                default:
-                    copy($params->source, $params->destination);
-            }
+            $this->handleParsing($params, new StyleParser($params));
             $this->trigger('post-parse', $params);
         }
+
         if ($this->dev) {
             return $params->path . '?' . time();
         }
+
         $this->css[] = $params->destination;
+
+        return null;
+    }
+
+    protected function handleParsing($params, AssetParser $parser)
+    {
+        $result = $parser->parse();
+
+        if (is_string($result)) {
+            copy($result, $params->destination);
+
+            return;
+        }
+
+        if (!is_array($result)) {
+            $result = array($result, $params->destination);
+        }
+
+        $this->writeWith($result[0], $result[1]);
     }
 
     protected function uglify(&$params)
@@ -229,7 +218,7 @@ class Minify
         $params->outputFile = $outputFile;
         $params->content = $uglify->getResult();
         $this->trigger('pre-write', $params);
-        $path = $this->path($params->outputDirectory, $params->outputFile);
+        $path = new Path($params->outputDirectory, $params->outputFile);
         $path = $this->prepareDirectory($path);
         $params->outputPath = $path;
         file_put_contents($path, $params->content);
@@ -251,7 +240,7 @@ class Minify
         $params->outputFile = $outputFile;
         $params->content = $output;
         $this->trigger('pre-write', $params);
-        $path = $this->path($params->outputDirectory, $params->outputFile);
+        $path = new Path($params->outputDirectory, $params->outputFile);
         $path = $this->prepareDirectory($path);
         $params->outputPath = $path;
         file_put_contents($path, $params->content);
@@ -276,7 +265,7 @@ class Minify
         if (is_null($this->dev)) {
             $this->dev = substr($this->getOption('environment'), 0, 3) === 'dev';
         }
-        $this->assetDirectory = (array) $this->assetDirectory ?: $this->getOption('assetDirectory', '');
+        $this->assetDirectory = (array) ($this->assetDirectory ?: $this->getOption('assetDirectory', ''));
         $this->outputDirectory = $this->outputDirectory ?: $this->getOption('outputDirectory', $this->assetDirectory[0]);
 
         $this->js = array();
@@ -303,14 +292,25 @@ class Minify
         }
 
         if (isset($this->events[$event])) {
-            foreach ($this->events[$event] as $action) {
-                if (is_callable($action)) {
-                    $newParams = call_user_func($action, $params, $event, $this);
-                    if (is_object($newParams)) {
-                        $params = $newParams;
-                    }
-                }
+            $this->triggerEventActions($event, $params);
+        }
+    }
+
+    private function triggerEventActions($event, &$params = null)
+    {
+        foreach ($this->events[$event] as $action) {
+            if (is_callable($action)) {
+                $this->triggerEventAction($action, $event, $params);
             }
+        }
+    }
+
+    private function triggerEventAction($action, $event, &$params = null)
+    {
+        $newParams = call_user_func($action, $params, $event, $this);
+
+        if (is_object($newParams)) {
+            $params = $newParams;
         }
     }
 

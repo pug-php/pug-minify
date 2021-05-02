@@ -26,5 +26,7 @@ plugins:
     enabled: true
   phan:
     enabled: true
+    config:
+      ignore-undeclared: true
 exclude_patterns:
 - "tests/"

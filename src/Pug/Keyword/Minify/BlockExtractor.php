@@ -53,15 +53,25 @@ class BlockExtractor
     protected function setNodeValue($node, $key, $value)
     {
         if (method_exists($node, 'getAttributes')) {
-            foreach ($node->getAttributes() as $attribute) {
-                if ($attribute->getName() === $key) {
-                    $attribute->setValue($value);
-                }
-            }
+            $this->setPug3NodeValue($node, $key, $value);
 
             return;
         }
 
+        $this->setPug2NodeValue($node, $key, $value);
+    }
+
+    protected function setPug3NodeValue($node, $key, $value)
+    {
+        foreach ($node->getAttributes() as $attribute) {
+            if ($attribute->getName() === $key) {
+                $attribute->setValue($value);
+            }
+        }
+    }
+
+    protected function setPug2NodeValue($node, $key, $value)
+    {
         foreach ($node->attributes as &$attribute) {
             if ((is_array($attribute) || $attribute instanceof ArrayAccess) &&
                 isset($attribute['name']) &&
