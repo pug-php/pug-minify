@@ -6,7 +6,7 @@ class FakeNode
 {
     public $attributes = array(
         array(
-            'name' => 'bar',
+            'name'  => 'bar',
             'value' => 'before',
         ),
     );
