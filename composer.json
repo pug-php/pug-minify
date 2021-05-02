@@ -10,17 +10,17 @@
         }
     ],
     "require": {
+        "php": ">=5.3",
         "pug-php/pug": "^2.0 || ^3.0",
         "nodejs-php-fallback/less": "^1.0",
         "nodejs-php-fallback/stylus": "^1.0",
         "nodejs-php-fallback/coffeescript": "^1.0",
         "nodejs-php-fallback/react": "^1.0",
-        "nodejs-php-fallback/uglify": "^1.0.1"
+        "nodejs-php-fallback/uglify": "^1.0.2"
     },
     "require-dev": {
-        "composer/composer": "^1.2",
-        "phpunit/phpunit": ">=4.8 <6.0",
-        "codeclimate/php-test-reporter": "dev-master"
+        "composer/composer": "^1.2 || ^2.0",
+        "phpunit/phpunit": "^4.8.36 || ^5.7.27 || ^8.5.15"
     },
     "autoload": {
         "psr-0": {

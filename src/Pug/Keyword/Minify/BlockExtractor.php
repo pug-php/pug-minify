@@ -2,6 +2,11 @@
 
 namespace Pug\Keyword\Minify;
 
+use ArrayAccess;
+use Jade\Nodes\Node;
+use Jade\Nodes\Tag;
+use Phug\Formatter\Element\MarkupElement;
+
 class BlockExtractor
 {
     /**
@@ -58,7 +63,10 @@ class BlockExtractor
         }
 
         foreach ($node->attributes as &$attribute) {
-            if ((is_array($attribute) || $attribute instanceof \ArrayAccess) && isset($attribute['name']) && $attribute['name'] === $key) {
+            if ((is_array($attribute) || $attribute instanceof ArrayAccess) &&
+                isset($attribute['name']) &&
+                $attribute['name'] === $key
+            ) {
                 $attribute['value'] = var_export($value, true);
             }
         }
@@ -92,19 +100,46 @@ class BlockExtractor
         if (isset($block->nodes) && is_array($block->nodes)) {
             $nodes = array();
             foreach ($block->nodes as $key => $node) {
-                if (isset($node->block) && is_object($node->block)) {
-                    $this->scrollBlock($node->block);
-                } elseif (isset($node->nodes) && count($node->nodes)) {
-                    $this->scrollBlock($node);
+                $subBlock = $this->getBlockToScroll($node);
+
+                if ($subBlock) {
+                    $this->scrollBlock($subBlock);
                 }
-                if (isset($node->name) && ($node instanceof \Jade\Nodes\Tag || $node instanceof \Phug\Formatter\Element\MarkupElement)) {
-                    if ($this->processNode($node)) {
-                        continue;
-                    }
+
+                $node = $this->tryToProceedNode($node);
+
+                if ($node) {
                     $nodes[$key] = $node;
                 }
             }
             $block->nodes = $nodes;
         }
+    }
+
+    private function getBlockToScroll($node)
+    {
+        if (isset($node->block) && is_object($node->block)) {
+            return $node->block;
+        }
+
+        if (isset($node->nodes) && count($node->nodes)) {
+            return $node;
+        }
+
+        return null;
+    }
+
+    /**
+     * @suppress PhanUndeclaredClassInstanceof
+     */
+    private function tryToProceedNode($node)
+    {
+        if ((isset($node->name) && ($node instanceof Tag || $node instanceof MarkupElement)) &&
+            !$this->processNode($node)
+        ) {
+            return $node;
+        }
+
+        return null;
     }
 }
