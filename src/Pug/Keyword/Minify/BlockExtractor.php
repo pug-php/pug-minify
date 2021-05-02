@@ -63,7 +63,10 @@ class BlockExtractor
         }
 
         foreach ($node->attributes as &$attribute) {
-            if ((is_array($attribute) || $attribute instanceof ArrayAccess) && isset($attribute['name']) && $attribute['name'] === $key) {
+            if ((is_array($attribute) || $attribute instanceof ArrayAccess) &&
+                isset($attribute['name']) &&
+                $attribute['name'] === $key
+            ) {
                 $attribute['value'] = var_export($value, true);
             }
         }
@@ -126,10 +129,12 @@ class BlockExtractor
         return null;
     }
 
+    /**
+     * @suppress PhanUndeclaredClassInstanceof
+     */
     private function tryToProceedNode($node)
     {
-        if (
-            (isset($node->name) && ($node instanceof Tag || $node instanceof MarkupElement)) &&
+        if ((isset($node->name) && ($node instanceof Tag || $node instanceof MarkupElement)) &&
             !$this->processNode($node)
         ) {
             return $node;
