@@ -26,5 +26,10 @@
         "psr-0": {
             "Pug\\": "src/"
         }
+    },
+    "config": {
+        "allow-plugins": {
+            "nodejs-php-fallback/nodejs-php-fallback": true
+        }
     }
 }
