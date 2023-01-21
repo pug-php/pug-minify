@@ -6,6 +6,9 @@ use ArrayAccess;
 use Jade\Nodes\Node;
 use Jade\Nodes\Tag;
 use Phug\Formatter\Element\MarkupElement;
+use Phug\Formatter\ElementInterface;
+use Phug\Parser\NodeInterface;
+use Phug\Util\SourceLocationInterface;
 
 class BlockExtractor
 {
@@ -85,24 +88,52 @@ class BlockExtractor
     protected function processNode($node)
     {
         $name = method_exists($node, 'getName') ? $node->getName() : $node->name;
+
         if (!isset($this->extractors[$name])) {
             return false;
         }
 
         list($extractor, $attributes) = $this->extractors[$name];
         $arguments = array();
+
         foreach ($attributes as $attribute) {
             $arguments[] = $this->getNodeValue($node, $attribute);
         }
+
+        $path = $this->getNodePath($node);
+
+        if ($path) {
+            $arguments[] = $path;
+        }
+
         $newAttributes = call_user_func_array($extractor, $arguments);
+
         if (!$newAttributes) {
             return true;
         }
+
         foreach ($newAttributes as $name => $value) {
             $this->setNodeValue($node, $name, $value);
         }
 
         return false;
+    }
+
+    protected function getNodePath($node)
+    {
+        if ($node instanceof ElementInterface) {
+            $node = $node->getOriginNode();
+        }
+
+        if (!($node instanceof NodeInterface)) {
+            return null;
+        }
+
+        $location = $node->getSourceLocation();
+
+        return $location instanceof SourceLocationInterface
+            ? $location->getPath()
+            : null;
     }
 
     protected function scrollBlock($block)

@@ -11,6 +11,19 @@ class Path
         $this->parts = array_filter(func_get_args());
     }
 
+    /**
+     * @param string $relativePath
+     *
+     * @return static
+     */
+    public function relativeTo($relativePath)
+    {
+        $path = new static(dirname($relativePath));
+        $path->parts = array_merge($path->parts, $this->parts);
+
+        return $path;
+    }
+
     public function __toString()
     {
         $parts = $this->parts;

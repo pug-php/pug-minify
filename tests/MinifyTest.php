@@ -261,6 +261,41 @@ class MinifyTest extends TestCase
         $this->cleanTempDir();
     }
 
+    public function testRelativePath()
+    {
+        $this->cleanTempDir();
+        $outputDirectory = $this->getTempDir();
+
+        $pug = new Pug(array(
+            'environment'        => 'production',
+            'prettyprint'        => true,
+            'assetDirectory'     => array(dirname(__DIR__), __DIR__, __DIR__ . '/js'),
+            'outputDirectory'    => $outputDirectory,
+            'execution_max_time' => 300000,
+        ));
+        $minify = new Minify($pug);
+        $pug->addKeyword('minify', $minify);
+        $html = static::simpleHtml($this->renderFile($pug, __DIR__ . '/relative/test-inside.pug'));
+        $expected = static::simpleHtml(file_get_contents(__DIR__ . '/relative/test-inside.html'));
+
+        self::assertSimilar($expected, $html);
+
+        $file = $outputDirectory . '/js/top.min.js';
+        $javascript = static::fileGetAsset($file);
+        unlink($file);
+        self::assertSimilar(
+            "console.log(\"sub/test\");console.log(\"sub/test2\");",
+            str_replace(array("\n", "\r"), '', $javascript)
+        );
+
+        $file = $outputDirectory . '/css/top.min.css';
+        $style = static::fileGetAsset($file);
+        unlink($file);
+        self::assertSimilar('body{#foo { color:red}} body{.foo { color:lime}', trim($style));
+
+        $this->cleanTempDir();
+    }
+
     /**
      * @group hooks
      */

@@ -98,14 +98,41 @@ class Minify
         $parser->write($path);
     }
 
-    protected function getPathInfo($path, $newExtension)
+    /**
+     * @param string      $path
+     * @param string      $newExtension
+     * @param string|null $relativePath
+     *
+     * @return string[]
+     */
+    protected function getPathInfo($path, $newExtension, $relativePath = null)
     {
-        $source = new Path($this->assetDirectory, $path);
+        $source = $this->getSourcePath($path, $relativePath);
         $extension = pathinfo($path, PATHINFO_EXTENSION);
         $path = substr($path, 0, -strlen($extension)) . $newExtension;
         $destination = $this->prepareDirectory(new Path($this->outputDirectory, $path));
 
         return array($extension, $path, (string) $source, $destination);
+    }
+
+    /**
+     * @param string      $path
+     * @param string|null $relativePath
+     *
+     * @return Path
+     */
+    protected function getSourcePath($path, $relativePath = null)
+    {
+        if ($relativePath) {
+            $relativeSource = new Path($path);
+            $relativeSource = $relativeSource->relativeTo($relativePath);
+
+            if (file_exists((string) $relativeSource)) {
+                return $relativeSource;
+            }
+        }
+
+        return new Path($this->assetDirectory, $path);
     }
 
     protected function needUpdate($source, $destination)
@@ -134,9 +161,9 @@ class Minify
         }
     }
 
-    protected function parseScript($path)
+    protected function parseScript($path, $relativePath = null)
     {
-        list($extension, $path, $source, $destination) = $this->getPathInfo($path, 'js');
+        list($extension, $path, $source, $destination) = $this->getPathInfo($path, 'js', $relativePath);
         $params = (object) array(
             'extension'   => $extension,
             'type'        => 'script',
@@ -162,9 +189,9 @@ class Minify
         return null;
     }
 
-    protected function parseStyle($path)
+    protected function parseStyle($path, $relativePath = null)
     {
-        list($extension, $path, $source, $destination) = $this->getPathInfo($path, 'css');
+        list($extension, $path, $source, $destination) = $this->getPathInfo($path, 'css', $relativePath);
         $params = (object) array(
             'extension'   => $extension,
             'type'        => 'style',
@@ -314,10 +341,10 @@ class Minify
         }
     }
 
-    public function linkExtractor($href, $rel)
+    public function linkExtractor($href, $rel, $relativePath = null)
     {
         if ($href && $rel === 'stylesheet') {
-            $path = $this->parseStyle($href);
+            $path = $this->parseStyle($href, $relativePath);
             if ($this->dev && $path) {
                 return array(
                     'href' => $path,
@@ -326,10 +353,10 @@ class Minify
         }
     }
 
-    public function scriptExtractor($src)
+    public function scriptExtractor($src, $relativePath = null)
     {
         if ($src) {
-            $path = $this->parseScript($src);
+            $path = $this->parseScript($src, $relativePath);
             if ($this->dev && $path) {
                 return array(
                     'src'  => $path,
