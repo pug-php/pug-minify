@@ -24,4 +24,9 @@ class BlockExtractorTester extends BlockExtractor
     {
         $this->setNodeValue($node, 'bar', 'after');
     }
+
+    public function getPathForWrongNode()
+    {
+        return $this->getNodePath(new \stdClass());
+    }
 }

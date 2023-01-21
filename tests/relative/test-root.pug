@@ -1,0 +1,15 @@
+doctype 5
+html
+  head
+    title Foo
+    concat top
+      script(src="coffee/test.coffee")
+      script(src="react-pug/test.jsxp" type="text/babel")
+      link(rel="stylesheet" href="less/test.less")
+      link(rel="stylesheet" href="stylus/test.styl")
+  body
+    h1 Foobar
+    concat bottom
+      script(src="react/test.jsx" type="text/babel")
+      script(src="coffee-pug/test.cofp")
+    concat empty

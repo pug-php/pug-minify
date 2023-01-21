@@ -187,7 +187,11 @@ class MinifyTest extends TestCase
         $this->cleanTempDir();
     }
 
-    public function testProductionWithConcat()
+    /**
+     * @testWith ["test-concat"]
+     *           ["relative/test-root"]
+     */
+    public function testProductionWithConcat($path)
     {
         $this->cleanTempDir();
         $outputDirectory = $this->getTempDir();
@@ -201,7 +205,7 @@ class MinifyTest extends TestCase
         ));
         $minify = new Minify($pug);
         $pug->addKeyword('concat', $minify);
-        $html = static::simpleHtml($this->renderFile($pug, __DIR__ . '/test-concat.pug'));
+        $html = static::simpleHtml($this->renderFile($pug, __DIR__ . '/' . $path . '.pug'));
         $expected = static::simpleHtml(file_get_contents(__DIR__ . '/prod-concat.html'));
 
         self::assertSimilar($expected, $html);
@@ -257,6 +261,45 @@ class MinifyTest extends TestCase
         $style = static::fileGetAsset($file);
         unlink($file);
         self::assertSimilar(static::fileGetAsset(__DIR__ . '/css/top.css'), $style);
+
+        $this->cleanTempDir();
+    }
+
+    public function testRelativePath()
+    {
+        if (!class_exists('Phug\\Util\\SourceLocationInterface')) {
+            self::markTestSkipped('SourceLocationInterface needed to calculate relative path');
+        }
+
+        $this->cleanTempDir();
+        $outputDirectory = $this->getTempDir();
+
+        $pug = new Pug(array(
+            'environment'        => 'production',
+            'prettyprint'        => true,
+            'assetDirectory'     => array(dirname(__DIR__), __DIR__, __DIR__ . '/js'),
+            'outputDirectory'    => $outputDirectory,
+            'execution_max_time' => 300000,
+        ));
+        $minify = new Minify($pug);
+        $pug->addKeyword('minify', $minify);
+        $html = static::simpleHtml($this->renderFile($pug, __DIR__ . '/relative/test-inside.pug'));
+        $expected = static::simpleHtml(file_get_contents(__DIR__ . '/relative/test-inside.html'));
+
+        self::assertSimilar($expected, $html);
+
+        $file = $outputDirectory . '/js/top.min.js';
+        $javascript = static::fileGetAsset($file);
+        unlink($file);
+        self::assertSimilar(
+            "console.log(\"sub/test\");console.log(\"sub/test2\");",
+            str_replace(array("\n", "\r"), '', $javascript)
+        );
+
+        $file = $outputDirectory . '/css/top.min.css';
+        $style = static::fileGetAsset($file);
+        unlink($file);
+        self::assertSimilar('body{#foo { color:red}} body{.foo { color:lime}', trim($style));
 
         $this->cleanTempDir();
     }
