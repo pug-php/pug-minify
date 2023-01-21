@@ -66,4 +66,14 @@ class BlockExtractorTest extends TestCase
 
         self::assertSame("'after'", $fakeNode->getBarValue());
     }
+
+    public function testPathForWrongNode()
+    {
+        require_once __DIR__ . '/Fixture/FakeNode.php';
+        require_once __DIR__ . '/Fixture/BlockExtractorTester.php';
+
+        $extractor = new BlockExtractorTester((object) array());
+
+        self::assertNull($extractor->getPathForWrongNode());
+    }
 }

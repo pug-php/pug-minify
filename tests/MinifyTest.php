@@ -187,7 +187,11 @@ class MinifyTest extends TestCase
         $this->cleanTempDir();
     }
 
-    public function testProductionWithConcat()
+    /**
+     * @testWith ["test-concat"]
+     *           ["relative/test-root"]
+     */
+    public function testProductionWithConcat($path)
     {
         $this->cleanTempDir();
         $outputDirectory = $this->getTempDir();
@@ -201,7 +205,7 @@ class MinifyTest extends TestCase
         ));
         $minify = new Minify($pug);
         $pug->addKeyword('concat', $minify);
-        $html = static::simpleHtml($this->renderFile($pug, __DIR__ . '/test-concat.pug'));
+        $html = static::simpleHtml($this->renderFile($pug, __DIR__ . '/' . $path . '.pug'));
         $expected = static::simpleHtml(file_get_contents(__DIR__ . '/prod-concat.html'));
 
         self::assertSimilar($expected, $html);
