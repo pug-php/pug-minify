@@ -263,6 +263,10 @@ class MinifyTest extends TestCase
 
     public function testRelativePath()
     {
+        if (!class_exists('Phug\\Util\\SourceLocationInterface')) {
+            self::markTestSkipped('SourceLocationInterface needed to calculate relative path');
+        }
+
         $this->cleanTempDir();
         $outputDirectory = $this->getTempDir();
 
